@@ -4,17 +4,21 @@ import com.JobPortal.JPP.dto.request.RegisterInputDTO;
 import com.JobPortal.JPP.dto.response.RegisterOutputDTO;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    @Autowired
-    UserRepository userRepository;
+
 
     @Override
     public List<RegisterOutputDTO> getAllUsers() {
@@ -52,9 +56,12 @@ public class UserServiceImpl implements UserService {
     public RegisterOutputDTO createUser(RegisterInputDTO registerInputDTO) {
         User user = new User();
 
+
         user.setName(registerInputDTO.getName());
         user.setEmail(registerInputDTO.getEmail());
-        user.setPassword(registerInputDTO.getPassword());
+        user.setPassword(
+                passwordEncoder.encode(registerInputDTO.getPassword())
+        );
         user.setRole(registerInputDTO.getRole());
 
         user = userRepository.save(user);
@@ -92,6 +99,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String removeUser(Long id) {
-        return "";
+        String name =userRepository.findById(id).orElse(null).getName();
+        userRepository.deleteById(id);
+        return  "User name : " + name + " and Id : " + id + "has been removed successfully! ";
+
     }
 }
