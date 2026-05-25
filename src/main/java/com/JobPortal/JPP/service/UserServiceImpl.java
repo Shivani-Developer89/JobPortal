@@ -3,6 +3,7 @@ package com.JobPortal.JPP.service;
 import com.JobPortal.JPP.dto.request.RegisterInputDTO;
 import com.JobPortal.JPP.dto.response.RegisterOutputDTO;
 import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,15 +42,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public RegisterOutputDTO getUserById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        RegisterOutputDTO registerOutputDTO = new RegisterOutputDTO();
-        registerOutputDTO.setId(user.getId());
-        registerOutputDTO.setName(user.getName());
-        registerOutputDTO.setEmail(user.getEmail());
-        registerOutputDTO.setPassword(user.getPassword());
-        registerOutputDTO.setRole(user.getRole());
 
-        return registerOutputDTO;
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        RegisterOutputDTO dto = new RegisterOutputDTO();
+
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setPassword(user.getPassword());
+        dto.setRole(user.getRole());
+
+        return dto;
     }
 
     @Override
