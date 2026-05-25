@@ -1,4 +1,4 @@
-package com.JobPortal.JPP.dto.request;
+package com.JobPortal.JPP.controller;
 
 import com.JobPortal.JPP.dto.response.ServerStatusResponseDTO;
 
