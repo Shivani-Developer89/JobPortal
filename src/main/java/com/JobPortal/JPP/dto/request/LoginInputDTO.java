@@ -1,5 +1,7 @@
 package com.JobPortal.JPP.dto.request;
 
+import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.security.jwt.JwtService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -12,4 +14,6 @@ public class LoginInputDTO {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+
 }

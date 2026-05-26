@@ -7,6 +7,7 @@ import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.exceptions.InvalidCredentialsException;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.UserRepository;
+import com.JobPortal.JPP.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+
 public class AuthServiceImpl implements  AuthService{
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
 
     @Override
     public AuthResponse register(RegisterInputDTO dto) {
@@ -67,12 +71,18 @@ public class AuthServiceImpl implements  AuthService{
                         "Invalid email or password"
                 );
             }
+           String token =
+                jwtService.generateToken(user.getEmail());
+        System.out.println(
+                jwtService.extractEmail(token)
+        );
 
-            return new AuthResponse(
-                    "Login Successful",
-                    "Dummy Token"
-            );
+        return new AuthResponse(
+                token,
+
+                "Login Successful"
+
+        );
         }
     }
-
 
