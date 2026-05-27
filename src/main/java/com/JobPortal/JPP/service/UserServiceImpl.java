@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
             registerOutputDTO.setId(user.getId());
             registerOutputDTO.setName(user.getName());
             registerOutputDTO.setEmail(user.getEmail());
-            registerOutputDTO.setPassword(user.getPassword());
+
             registerOutputDTO.setRole(user.getRole());
 
             registerOutputDTOList.add(registerOutputDTO);
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
-        dto.setPassword(user.getPassword());
+
         dto.setRole(user.getRole());
 
         return dto;
@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
         registerOutputDTO.setId(user.getId());
         registerOutputDTO.setName(user.getName());
         registerOutputDTO.setEmail(user.getEmail());
-        registerOutputDTO.setPassword(user.getPassword());
+
         registerOutputDTO.setRole(user.getRole());
         return  registerOutputDTO;
     }
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
         registerOutputDTO.setId(user.getId());
         registerOutputDTO.setName(user.getName());
         registerOutputDTO.setEmail(user.getEmail());
-        registerOutputDTO.setPassword(user.getPassword());
+
         registerOutputDTO.setRole(user.getRole());
         return  registerOutputDTO;
 
