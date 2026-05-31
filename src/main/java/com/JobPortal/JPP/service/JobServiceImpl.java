@@ -7,6 +7,7 @@ import com.JobPortal.JPP.repository.JobRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,12 +23,13 @@ public class JobServiceImpl implements JobService{
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
         job.setSalary(jobRequestDTO.getSalary());
-        job.setCreatedAt(jobRequestDTO.getCreatedAt());
+        job.setCreatedAt(LocalDateTime.now());
 
         job = jobRepository.save(job);
 
         JobResponseDTO jobResponseDTO = new JobResponseDTO();
 
+        jobResponseDTO.setId(job.getId());
         jobResponseDTO.setTitle(job.getTitle());
         jobResponseDTO.setDescription(job.getDescription());
         jobResponseDTO.setLocation(job.getLocation());
@@ -42,6 +44,7 @@ public class JobServiceImpl implements JobService{
         Job job =  jobRepository.findById(id).
                 orElseThrow(() -> new RuntimeException("Job not found"));
         JobResponseDTO dto = new JobResponseDTO();
+        dto.setId(job.getId());
         dto.setTitle(job.getTitle());
         dto.setDescription(job.getDescription());
         dto.setLocation(job.getLocation());
@@ -65,6 +68,8 @@ public class JobServiceImpl implements JobService{
             jobResponseDTO.setSalary(job.getSalary());
             jobResponseDTO.setCreatedAt(job.getCreatedAt());
 
+            jobResponseDTOList.add(jobResponseDTO);
+
         }
         return jobResponseDTOList;
     }
@@ -83,6 +88,7 @@ public class JobServiceImpl implements JobService{
 
         JobResponseDTO jobResponseDTO = new JobResponseDTO();
 
+        jobResponseDTO.setId(job.getId());
         jobResponseDTO.setTitle(job.getTitle());
         jobResponseDTO.setDescription(job.getDescription());
         jobResponseDTO.setLocation(job.getLocation());
@@ -98,6 +104,6 @@ public class JobServiceImpl implements JobService{
     public String removeJob(Long id) {
         String name = jobRepository.findById(id).orElse(null).getTitle();
         jobRepository.deleteById(id);
-        return "Job title : " + name + "and Id : " + id + "has been removed successfully! ";
+        return "Job title : " +  name + " and Id : "  +id  +   " has been removed successfully! ";
     }
 }
