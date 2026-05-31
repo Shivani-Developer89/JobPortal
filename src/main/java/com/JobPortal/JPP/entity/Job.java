@@ -1,13 +1,12 @@
 package com.JobPortal.JPP.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 @Data
+@Entity
+@Table(name = "jobs")
 public class Job {
 
     @Id
@@ -17,7 +16,7 @@ public class Job {
     @Column(columnDefinition = "text")
     private String description;
     private String location;
-    private Double Salary;
-    private LocalDate createdAt;
+    private Double salary;
+    private LocalDateTime createdAt;
 
 }

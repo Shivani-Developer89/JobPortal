@@ -2,8 +2,19 @@ package com.JobPortal.JPP.dto.response;
 
 import lombok.Data;
 
-import java.time.LocalDate;
 
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({
+        "id",
+        "title",
+        "description",
+        "location",
+        "salary",
+        "createdAt"
+})
 @Data
 public class JobResponseDTO {
 
@@ -12,6 +23,6 @@ public class JobResponseDTO {
 
     private String description;
     private String location;
-    private Double Salary;
-    private LocalDate createdAt;
+    private Double salary;
+    private LocalDateTime createdAt;
 }
