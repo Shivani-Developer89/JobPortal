@@ -5,6 +5,7 @@ import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
+import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
@@ -33,10 +34,18 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .getContext()
                 .getAuthentication()
                 .getName();
-        User candidate = userRepository.findByEmail(email).orElseThrow(() ->
-                new UserDoesNotExist("User not found"));
+
+        User candidate = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserDoesNotExist("User not found"));
+
+        if(candidate.getRole() != Role.CANDIDATE){
+            throw new RuntimeException("Only candidates can apply for jobs");
+        }
         Job job = jobRepository.findById(id).orElseThrow(() ->
                     new RuntimeException("Job not found"));
+        if (applicationRepository.existsByCandidateAndJob(candidate, job)) {
+            throw new RuntimeException("Already applied");
+        }
         Application application = new Application();
 
         application.setCandidate(candidate);
@@ -46,6 +55,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         application = applicationRepository.save(application);
 
         ApplicationResponseDTO dto = new ApplicationResponseDTO();
+
 
         dto.setId(application.getId());
         dto.setCandidateId(application.getCandidate().getId());
@@ -66,8 +76,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new UserDoesNotExist("User not found"));
-
-
 
         List<Application> applications =
                 applicationRepository.findByCandidate(user);
