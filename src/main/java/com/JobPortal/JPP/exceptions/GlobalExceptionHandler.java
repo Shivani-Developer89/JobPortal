@@ -49,4 +49,17 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED
         );
     }
+    @ExceptionHandler(AlreadyAppliedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAlreadyAppliedException(
+            AlreadyAppliedException ex) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                "Application already exists"
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

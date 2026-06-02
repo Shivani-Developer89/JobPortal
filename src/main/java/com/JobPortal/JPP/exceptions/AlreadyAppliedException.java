@@ -1,4 +1,10 @@
 package com.JobPortal.JPP.exceptions;
 
-public class AlreadyApply {
-}
+
+public class AlreadyAppliedException extends RuntimeException {
+
+        public AlreadyAppliedException(String message) {
+            super(message);
+        }
+    }
+
