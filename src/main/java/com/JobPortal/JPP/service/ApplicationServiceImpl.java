@@ -77,7 +77,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new UserDoesNotExist("User not found"));
 
-        List<Application> applications =
+         List<Application> applications =
                 applicationRepository.findByCandidate(user);
 
         List<ApplicationResponseDTO> dtoList =

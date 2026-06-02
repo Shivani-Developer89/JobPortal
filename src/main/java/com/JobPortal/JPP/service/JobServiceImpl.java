@@ -3,8 +3,13 @@ package com.JobPortal.JPP.service;
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
+import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.entity.enums.Role;
+import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.JobRepository;
+import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,9 +20,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JobServiceImpl implements JobService{
     private final JobRepository jobRepository;
+    private final UserRepository userRepository;
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserDoesNotExist("User not found"));
+
+        if(user.getRole() != Role.RECRUITER){
+            throw new RuntimeException("Only recruiters can create jobs");
+        }
         Job job = new Job();
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
