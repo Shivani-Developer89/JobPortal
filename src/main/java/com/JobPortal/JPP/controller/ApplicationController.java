@@ -2,6 +2,7 @@ package com.JobPortal.JPP.controller;
 
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
+import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,4 +32,22 @@ public class ApplicationController {
         return ResponseEntity.ok(
                 applicationService.getMyApplication());
     }
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsByJob(
+            @PathVariable Long jobId) {
+
+        return ResponseEntity.ok(
+                applicationService.getApplicationsByJob(jobId)
+        );
+    }
+    @PutMapping("/{applicationId}/status")
+    public ResponseEntity<ApplicationResponseDTO> updateStatus(
+            @PathVariable Long applicationId,
+            @RequestParam ApplicationStatus status) {
+
+        return ResponseEntity.ok(
+                applicationService.updateStatus(applicationId, status)
+        );
+    }
+
 }

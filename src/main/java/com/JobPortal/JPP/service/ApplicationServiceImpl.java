@@ -6,6 +6,8 @@ import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.Role;
+import com.JobPortal.JPP.exceptions.AccessDeniedException;
+import com.JobPortal.JPP.exceptions.AlreadyAppliedException;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
@@ -44,7 +46,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         Job job = jobRepository.findById(id).orElseThrow(() ->
                     new RuntimeException("Job not found"));
         if (applicationRepository.existsByCandidateAndJob(candidate, job)) {
-            throw new RuntimeException("Already applied");
+            throw new AlreadyAppliedException("Already applied");
         }
         Application application = new Application();
 
@@ -107,4 +109,80 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dtoList;
     }
+    @Override
+    public List<ApplicationResponseDTO> getApplicationsByJob(Long jobId) {
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+        Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
+        System.out.println("Logged User = " + user.getId());
+        System.out.println("Job Owner = " + job.getRecruiter().getId());
+
+        if(user.getRole() != Role.RECRUITER){
+            throw new RuntimeException(
+                    "Only recruiters can view applications");
+        }
+
+
+
+        if(!job.getRecruiter().getId().equals(user.getId())){
+            throw new AccessDeniedException(
+                    "You can only view applications for your own jobs");
+        }
+
+
+
+        List<Application> applications =
+                applicationRepository.findByJob(job);
+
+        List<ApplicationResponseDTO> response = new ArrayList<>();
+
+        for (Application application : applications) {
+
+            ApplicationResponseDTO dto =
+                    new ApplicationResponseDTO();
+
+            dto.setId(application.getId());
+            dto.setCandidateId(
+                    application.getCandidate().getId());
+            dto.setJobId(
+                    application.getJob().getId());
+            dto.setStatus(
+                    application.getStatus());
+            dto.setAppliedAt(
+                    application.getAppliedAt());
+
+            response.add(dto);
+        }
+
+        return response;
+    }
+    @Override
+    public ApplicationResponseDTO updateStatus(Long applicationId,
+                                               ApplicationStatus status) {
+
+        Application application = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() ->
+                        new RuntimeException("Application not found"));
+
+        application.setStatus(status);
+
+        application = applicationRepository.save(application);
+
+        ApplicationResponseDTO dto = new ApplicationResponseDTO();
+
+        dto.setId(application.getId());
+        dto.setCandidateId(application.getCandidate().getId());
+        dto.setJobId(application.getJob().getId());
+        dto.setAppliedAt(application.getAppliedAt());
+        dto.setStatus(application.getStatus());
+
+        return dto;
+    }
+
 }
