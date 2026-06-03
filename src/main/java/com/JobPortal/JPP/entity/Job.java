@@ -15,6 +15,9 @@ public class Job {
     private String title;
     @Column(columnDefinition = "text")
     private String description;
+    @ManyToOne
+    @JoinColumn(name = "recruiter_id")
+    private User recruiter;
     private String location;
     private Double salary;
     private LocalDateTime createdAt;

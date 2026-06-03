@@ -36,15 +36,15 @@ public class JobServiceImpl implements JobService{
         if(user.getRole() != Role.RECRUITER){
             throw new RuntimeException("Only recruiters can create jobs");
         }
+
         Job job = new Job();
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
         job.setSalary(jobRequestDTO.getSalary());
         job.setCreatedAt(LocalDateTime.now());
-
+        job.setRecruiter(user);
         job = jobRepository.save(job);
-
         JobResponseDTO jobResponseDTO = new JobResponseDTO();
 
         jobResponseDTO.setId(job.getId());
@@ -53,6 +53,7 @@ public class JobServiceImpl implements JobService{
         jobResponseDTO.setLocation(job.getLocation());
         jobResponseDTO.setSalary(job.getSalary());
         jobResponseDTO.setCreatedAt(job.getCreatedAt());
+
 
         return jobResponseDTO;
     }
@@ -123,5 +124,29 @@ public class JobServiceImpl implements JobService{
         String name = jobRepository.findById(id).orElse(null).getTitle();
         jobRepository.deleteById(id);
         return "Job title : " +  name + " and Id : "  +id  +   " has been removed successfully! ";
+    }
+    @Override
+    public List<JobResponseDTO> searchJobs(String title) {
+
+        List<Job> jobs =
+                jobRepository.findByTitleContainingIgnoreCase(title);
+
+        List<JobResponseDTO> response = new ArrayList<>();
+
+        for (Job job : jobs) {
+
+            JobResponseDTO dto = new JobResponseDTO();
+
+            dto.setId(job.getId());
+            dto.setTitle(job.getTitle());
+            dto.setDescription(job.getDescription());
+            dto.setLocation(job.getLocation());
+            dto.setSalary(job.getSalary());
+            dto.setCreatedAt(job.getCreatedAt());
+
+            response.add(dto);
+        }
+
+        return response;
     }
 }

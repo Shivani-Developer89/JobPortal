@@ -1,5 +1,6 @@
 package com.JobPortal.JPP.dto.response;
 
+import com.JobPortal.JPP.entity.User;
 import lombok.Data;
 
 
@@ -23,6 +24,7 @@ public class JobResponseDTO {
 
     private String description;
     private String location;
+
     private Double salary;
     private LocalDateTime createdAt;
 }

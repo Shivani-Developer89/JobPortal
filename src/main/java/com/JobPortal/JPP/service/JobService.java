@@ -11,6 +11,7 @@ public interface JobService {
     List<JobResponseDTO> getAllJob();
     JobResponseDTO updateJob(Long id , JobRequestDTO jobRequestDTO);
     String removeJob(Long id);
+    List<JobResponseDTO> searchJobs(String title);
 
 
 }
