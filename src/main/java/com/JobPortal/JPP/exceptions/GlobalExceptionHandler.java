@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -61,5 +62,22 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccessDenied(
+            AccessDeniedException ex) {
+
+        ErrorResponseDTO error =
+                new ErrorResponseDTO(        LocalDateTime.now(),
+                        HttpStatus.FORBIDDEN.value(),
+                        ex.getMessage(),
+                        "Access denied"
+                );
+
+        error.setMessage(ex.getMessage());
+
+        return new ResponseEntity<>(
+                error,
+                HttpStatus.FORBIDDEN);
     }
 }
