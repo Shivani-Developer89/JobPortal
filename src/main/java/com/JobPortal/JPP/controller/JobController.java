@@ -40,6 +40,13 @@ public class JobController {
     public ResponseEntity<String> removeJob(@PathVariable Long id){
         return new ResponseEntity<>(jobService.removeJob(id),HttpStatusCode.valueOf(200));
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<JobResponseDTO>> searchJobs(
+            @RequestParam String title) {
+
+        return ResponseEntity.ok(
+                jobService.searchJobs(title));
+    }
 
 
 
