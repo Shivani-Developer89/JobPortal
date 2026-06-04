@@ -9,12 +9,16 @@ import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -74,23 +78,40 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
-    public List<JobResponseDTO> getAllJob() {
-        List<Job> JobList = jobRepository.findAll();
-        List<JobResponseDTO> jobResponseDTOList = new ArrayList<>();
-        for (Job job : JobList){
-            JobResponseDTO jobResponseDTO = new JobResponseDTO();
+    public Page<JobResponseDTO> getAllJobs(int page, int size ,   String sort) {
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(sort)
+                );
 
-            jobResponseDTO.setId(job.getId());
-            jobResponseDTO.setTitle(job.getTitle());
-            jobResponseDTO.setDescription(job.getDescription());
-            jobResponseDTO.setLocation(job.getLocation());
-            jobResponseDTO.setSalary(job.getSalary());
-            jobResponseDTO.setCreatedAt(job.getCreatedAt());
+        Page<Job> jobs =
+                jobRepository.findAll(pageable);
 
-            jobResponseDTOList.add(jobResponseDTO);
+        List<JobResponseDTO> response =
+                new ArrayList<>();
 
+        for (Job job : jobs.getContent()) {
+
+            JobResponseDTO dto =
+                    new JobResponseDTO();
+
+            dto.setId(job.getId());
+            dto.setTitle(job.getTitle());
+            dto.setDescription(job.getDescription());
+            dto.setLocation(job.getLocation());
+            dto.setSalary(job.getSalary());
+            dto.setCreatedAt(job.getCreatedAt());
+
+            response.add(dto);
         }
-        return jobResponseDTOList;
+
+        return new PageImpl<>(
+                response,
+                pageable,
+                jobs.getTotalElements()
+        );
     }
 
     @Override

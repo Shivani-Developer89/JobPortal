@@ -4,6 +4,7 @@ import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +28,22 @@ public class JobController {
         return  new ResponseEntity<>(jobService.getJobById(id),HttpStatusCode.valueOf(200));
     }
     @GetMapping("/all")
-    public ResponseEntity<List> getAllJob(){
-        return  new ResponseEntity<>(jobService.getAllJob(),HttpStatusCode.valueOf(200));
+    public ResponseEntity<Page<JobResponseDTO>> getAllJobs(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "5")
+            int size,
+            @RequestParam(defaultValue = "id")
+                    String sort
+    ) {
+
+        return ResponseEntity.ok(
+                jobService.getAllJobs(
+                        page,
+                        size,
+                        sort));
     }
 
     @PutMapping("/{id}")
