@@ -1,6 +1,7 @@
 package com.JobPortal.JPP.controller;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
+import com.JobPortal.JPP.dto.response.DashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,13 @@ public class JobController {
 
         return ResponseEntity.ok(
                 jobService.searchJobs(title));
+    }
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardResponseDTO>
+    getDashboard() {
+
+        return ResponseEntity.ok(
+                jobService.getDashboard());
     }
 
 

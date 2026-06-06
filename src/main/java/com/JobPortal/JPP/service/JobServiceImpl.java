@@ -1,11 +1,13 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
+import com.JobPortal.JPP.dto.response.DashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
+import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import org.springframework.data.domain.Sort;
 public class JobServiceImpl implements JobService{
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private  final ApplicationRepository applicationRepository;
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
@@ -169,5 +172,33 @@ public class JobServiceImpl implements JobService{
         }
 
         return response;
+    }
+    @Override
+    public DashboardResponseDTO getDashboard() {
+
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if(recruiter.getRole() != Role.RECRUITER){
+            throw new RuntimeException(
+                    "Only recruiters can access dashboard");
+        }
+
+        DashboardResponseDTO dto =
+                new DashboardResponseDTO();
+
+        dto.setTotalJobs(
+                jobRepository.countByRecruiter(recruiter));
+
+        dto.setTotalApplications(applicationRepository.countByJobRecruiter(recruiter));
+
+        return dto;
     }
 }
