@@ -7,9 +7,18 @@ import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,5 +118,81 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
         return  "User name : " + name + " and Id : " + id + "has been removed successfully! ";
 
+    }
+    @Override
+    public  String uploadResume(MultipartFile file){
+    try {
+
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserDoesNotExist("user not found"));
+        String uploadResume = "uploads/";
+
+        Files.createDirectories(Paths.get(uploadResume));
+
+        String fileName = System.currentTimeMillis()
+                         + "_ "
+                         +file.getOriginalFilename();
+        Path filePath =Paths.get(uploadResume , fileName);
+
+        Files.copy(
+                   file.getInputStream(),
+                    filePath,
+                StandardCopyOption.REPLACE_EXISTING);
+
+        user.setResumePath(filePath.toString());
+        System.out.println("UPLOAD USER = " + email);
+        System.out.println("SAVED PATH = " + filePath);
+
+        userRepository.save(user);
+
+
+        return "Resume  uploaded successfully";
+    }
+   catch (IOException e) {
+        throw new RuntimeException("Failed to upload resume");
+    }
+
+    }
+    @Override
+    public Resource downloadResume() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        String resumePath = user.getResumePath();
+        System.out.println("DOWNLOAD USER = " + email);
+        System.out.println("DB PATH = " + user.getResumePath());
+
+        if (resumePath == null || resumePath.isEmpty()) {
+            throw new RuntimeException("No resume uploaded");
+        }
+
+        try {
+
+            Path path = Paths.get(resumePath);
+
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists()) {
+                throw new RuntimeException("Resume file not found");
+            }
+
+            return resource;
+
+        } catch (Exception e) {
+            e.printStackTrace(); // important for debugging
+            throw new RuntimeException("Resume not found");
+        }
     }
 }
