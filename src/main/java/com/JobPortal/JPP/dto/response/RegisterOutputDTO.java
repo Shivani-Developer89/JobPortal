@@ -18,4 +18,5 @@ public class RegisterOutputDTO {
 
 
     private Role role;
+    private String resumePath;
 }

@@ -11,5 +11,7 @@ public class RegisterInputDTO {
     private String email;
     private  String password;
 
+
     private Role role;
+    private String resumePath;
 }
