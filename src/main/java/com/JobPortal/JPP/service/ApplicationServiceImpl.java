@@ -13,9 +13,13 @@ import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -184,5 +188,47 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
+
+    @Override
+    public Resource downloadCandidateResume(Long applicationId) {
+        Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new RuntimeException("Application not found"));
+
+        String email = SecurityContextHolder
+                        .getContext()
+                .getAuthentication()
+                .getName();
+        User recruiter = userRepository.findByEmail(email).orElseThrow(() ->new UserDoesNotExist());
+
+        if(!application.getJob()
+                .getRecruiter()
+                .getId()
+                .equals(recruiter.getId()) ){
+            throw new AccessDeniedException("You can download resumes f your own job");
+
+        }
+        User candidate = application.getCandidate();
+        String resumePath = candidate.getResumePath();
+        if(resumePath == null || resumePath.isEmpty()){
+            throw new RuntimeException("Candidate has not uploaded a resume");
+        }
+        try {
+            Path path = Paths.get(resumePath);
+            Resource resource = new UrlResource(path.toUri());
+            if (!resource.exists()) {
+                throw new RuntimeException("Resume file not found");
+            }
+
+            return resource;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Resume not found");
+        }
+
+    }
+
+
+
+
+
 
 }
