@@ -4,6 +4,8 @@ package com.JobPortal.JPP.controller;
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +50,22 @@ public class ApplicationController {
         return ResponseEntity.ok(
                 applicationService.updateStatus(applicationId, status)
         );
+    }
+    @GetMapping("/{applicationId}/resume")
+    public ResponseEntity<Resource>
+    downloadCandidateResume(
+            @PathVariable Long applicationId) {
+
+        Resource resource =
+                applicationService
+                        .downloadCandidateResume(
+                                applicationId);
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"resume.pdf\"")
+                .body(resource);
     }
 
 }
