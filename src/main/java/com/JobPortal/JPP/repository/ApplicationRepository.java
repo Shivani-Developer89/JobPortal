@@ -3,6 +3,7 @@ package com.JobPortal.JPP.repository;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +15,9 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
     boolean existsByCandidateAndJob(User candidate, Job job);
     Long countByJobRecruiter(User recruiter);
 
+    Long countByCandidate(User candidate);
 
+    Long countByCandidateAndStatus(
+            User candidate,
+            ApplicationStatus status);
 }

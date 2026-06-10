@@ -1,6 +1,7 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
+import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
@@ -46,6 +47,11 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         if(candidate.getRole() != Role.CANDIDATE){
             throw new RuntimeException("Only candidates can apply for jobs");
+        }
+        if(candidate.getResumePath() == null ||
+                candidate.getResumePath().isEmpty()) {
+            throw new RuntimeException(
+                    "Please upload resume before applying");
         }
         Job job = jobRepository.findById(id).orElseThrow(() ->
                     new RuntimeException("Job not found"));
@@ -224,6 +230,48 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw new RuntimeException("Resume not found");
         }
 
+    }
+    @Override
+    public CandidateDashboardResponseDTO
+    getCandidateDashboard() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist(
+                                "User not found"));
+
+        CandidateDashboardResponseDTO dto =
+                new CandidateDashboardResponseDTO();
+
+        dto.setTotalApplications(
+                applicationRepository
+                        .countByCandidate(candidate));
+
+        dto.setPendingApplications(
+                applicationRepository
+                        .countByCandidateAndStatus(
+                                candidate,
+                                ApplicationStatus.PENDING));
+
+        dto.setAcceptedApplications(
+                applicationRepository
+                        .countByCandidateAndStatus(
+                                candidate,
+                                ApplicationStatus.ACCEPTED));
+
+        dto.setRejectedApplications(
+                applicationRepository
+                        .countByCandidateAndStatus(
+                                candidate,
+                                ApplicationStatus.REJECTED));
+
+        return dto;
     }
 
 
