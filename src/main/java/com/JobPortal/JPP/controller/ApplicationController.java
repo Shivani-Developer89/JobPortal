@@ -2,6 +2,7 @@ package com.JobPortal.JPP.controller;
 
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
+import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.core.io.Resource;
@@ -66,6 +67,14 @@ public class ApplicationController {
                         HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"resume.pdf\"")
                 .body(resource);
+    }
+    @GetMapping("/dashboard")
+    public ResponseEntity<CandidateDashboardResponseDTO>
+    getCandidateDashboard() {
+
+        return ResponseEntity.ok(
+                applicationService
+                        .getCandidateDashboard());
     }
 
 }
