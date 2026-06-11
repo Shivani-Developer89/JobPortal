@@ -16,6 +16,11 @@ public interface JobService {
     String removeJob(Long id);
     List<JobResponseDTO> searchJobs(String title);
     DashboardResponseDTO getDashboard();
+    String saveJob(Long jobId);
+    List<JobResponseDTO> getSavedJobs();
+    String unsaveJob(Long jobId);
+
+
 
 
 }

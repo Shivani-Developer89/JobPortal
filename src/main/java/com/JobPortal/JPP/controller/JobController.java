@@ -70,6 +70,23 @@ public class JobController {
         return ResponseEntity.ok(
                 jobService.getDashboard());
     }
+    @PostMapping("/{jobId}/save")
+    public ResponseEntity<String> saveJob(@PathVariable Long jobId){
+        return ResponseEntity.ok(jobService.saveJob(jobId));
+    }
+    @GetMapping("/saved")
+    public ResponseEntity<List<JobResponseDTO>> getSavedJobs() {
+        return ResponseEntity.ok(
+                jobService.getSavedJobs()
+        );
+    }
+    @DeleteMapping("/{jobId}/unsave")
+    public ResponseEntity<String> unsaveJob(
+            @PathVariable Long jobId) {
+
+        return ResponseEntity.ok(
+                jobService.unsaveJob(jobId));
+    }
 
 
 

@@ -4,11 +4,13 @@ import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.DashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
+import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
+import com.JobPortal.JPP.repository.SavedJobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -28,6 +30,7 @@ public class JobServiceImpl implements JobService{
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private  final ApplicationRepository applicationRepository;
+    private final SavedJobRepository savedJobRepository;
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
@@ -200,5 +203,106 @@ public class JobServiceImpl implements JobService{
         dto.setTotalApplications(applicationRepository.countByJobRecruiter(recruiter));
 
         return dto;
+    }
+    @Override
+    public String saveJob(Long jobId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if(candidate.getRole() != Role.CANDIDATE){
+            throw new RuntimeException(
+                    "Only candidates can save jobs");
+        }
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
+
+        if(savedJobRepository
+                .findByCandidateAndJob(candidate, job)
+                .isPresent()) {
+
+            throw new RuntimeException(
+                    "Job already saved");
+        }
+
+        SavedJob savedJob = new SavedJob();
+
+        savedJob.setCandidate(candidate);
+        savedJob.setJob(job);
+
+        savedJobRepository.save(savedJob);
+
+        return "Job saved successfully";
+    }
+    @Override
+    public List<JobResponseDTO> getSavedJobs() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        List<SavedJob> savedJobs =
+                savedJobRepository.findByCandidate(candidate);
+
+        List<JobResponseDTO> response =
+                new ArrayList<>();
+
+        for (SavedJob savedJob : savedJobs) {
+
+            Job job = savedJob.getJob();
+
+            JobResponseDTO dto =
+                    new JobResponseDTO();
+
+            dto.setId(job.getId());
+            dto.setTitle(job.getTitle());
+            dto.setDescription(job.getDescription());
+            dto.setLocation(job.getLocation());
+            dto.setSalary(job.getSalary());
+            dto.setCreatedAt(job.getCreatedAt());
+
+            response.add(dto);
+        }
+
+        return response;
+    }
+    @Override
+    public String unsaveJob(Long jobId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
+
+        SavedJob savedJob = savedJobRepository
+                .findByCandidateAndJob(candidate, job)
+                .orElseThrow(() ->
+                        new RuntimeException("Saved job not found"));
+
+        savedJobRepository.delete(savedJob);
+
+        return "Job removed from saved jobs";
     }
 }
