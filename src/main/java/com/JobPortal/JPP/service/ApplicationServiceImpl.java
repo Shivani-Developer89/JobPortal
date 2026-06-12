@@ -34,6 +34,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobRepository jobRepository;
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     public ApplicationResponseDTO applyJob(Long id) {
@@ -65,6 +66,21 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setAppliedAt(LocalDateTime.now());
         application.setStatus(ApplicationStatus.APPLIED);
         application = applicationRepository.save(application);
+        System.out.println("Application saved");
+
+        User recruiter = job.getRecruiter();
+
+        System.out.println("Recruiter email: " + recruiter.getEmail());
+
+        emailService.sendEmail(
+                recruiter.getEmail(),
+                "New Job Application",
+                "Candidate " + candidate.getName()
+                        + " has applied for "
+                        + job.getTitle()
+        );
+
+        System.out.println("Email method executed");
 
         ApplicationResponseDTO dto = new ApplicationResponseDTO();
 
