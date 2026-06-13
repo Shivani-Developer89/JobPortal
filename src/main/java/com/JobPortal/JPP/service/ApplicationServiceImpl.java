@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,18 +67,35 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setAppliedAt(LocalDateTime.now());
         application.setStatus(ApplicationStatus.APPLIED);
         application = applicationRepository.save(application);
+
+
         System.out.println("Application saved");
 
         User recruiter = job.getRecruiter();
 
         System.out.println("Recruiter email: " + recruiter.getEmail());
+        // format date only for email
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+        String appliedDate =
+                application.getAppliedAt().format(formatter);
+        String emailBody =
+                "Hello Recruiter,\n\n" +
+                        "A new candidate has applied for your job posting.\n\n" +
+                        "Candidate Name: " + candidate.getName() + "\n" +
+                        "Candidate Email: " + candidate.getEmail() + "\n" +
+                        "Job Title: " + job.getTitle() + "\n" +
+                        "Applied On: " + appliedDate + "\n\n" +
+                        "You can review the application from your Job Portal dashboard.\n\n" +
+                        "Regards,\n" +
+                        "Job Portal Team";
 
         emailService.sendEmail(
                 recruiter.getEmail(),
-                "New Job Application",
-                "Candidate " + candidate.getName()
-                        + " has applied for "
-                        + job.getTitle()
+                "New Job Application - " + job.getTitle(),
+                emailBody
+
         );
 
         System.out.println("Email method executed");
@@ -90,6 +108,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setJobId(application.getJob().getId());
         dto.setAppliedAt(application.getAppliedAt());
         dto.setStatus(application.getStatus());
+
 
         return dto;
     }
@@ -188,7 +207,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         return response;
     }
     @Override
-    public ApplicationResponseDTO updateStatus(Long applicationId,
+    public ApplicationResponseDTO updateApplicationStatus(Long applicationId,
                                                ApplicationStatus status) {
 
         Application application = applicationRepository
@@ -199,6 +218,34 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setStatus(status);
 
         application = applicationRepository.save(application);
+
+
+        User candidate = application.getCandidate();
+        String jobTitle = application.getJob().getTitle();
+
+        if(status == ApplicationStatus.ACCEPTED){
+
+            emailService.sendEmail(
+                    candidate.getEmail(),
+                    "Application Accepted - " + jobTitle,
+                    "Congratulations!\n\n" +
+                            "Your application for " + jobTitle +
+                            " has been accepted.\n\n" +
+                            "Regards,\nJob Portal Team"
+            );
+        }
+
+        if(status == ApplicationStatus.REJECTED){
+
+            emailService.sendEmail(
+                    candidate.getEmail(),
+                    "Application Update - " + jobTitle,
+                    "Thank you for applying.\n\n" +
+                            "Unfortunately your application for " + jobTitle +
+                            " was not selected.\n\n" +
+                            "Regards,\nJob Portal Team"
+            );
+        }
 
         ApplicationResponseDTO dto = new ApplicationResponseDTO();
 

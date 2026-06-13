@@ -14,7 +14,7 @@ public interface ApplicationService {
     ApplicationResponseDTO applyJob(Long id);
     List<ApplicationResponseDTO> getMyApplication();
     List<ApplicationResponseDTO> getApplicationsByJob(Long jobId);
-    ApplicationResponseDTO updateStatus(Long applicationId,
+    ApplicationResponseDTO updateApplicationStatus(Long applicationId,
                                         ApplicationStatus status);
 
     Resource downloadCandidateResume(Long applicationId);
