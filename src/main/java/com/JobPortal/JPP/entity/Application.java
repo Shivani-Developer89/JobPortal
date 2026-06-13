@@ -22,4 +22,5 @@ public class Application {
 
     private LocalDateTime appliedAt;
 
+
 }

@@ -3,6 +3,7 @@ package com.JobPortal.JPP.controller;
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.UpdateApplicationStatusDTO;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.core.io.Resource;
@@ -44,13 +45,13 @@ public class ApplicationController {
         );
     }
     @PutMapping("/{applicationId}/status")
-    public ResponseEntity<ApplicationResponseDTO> updateStatus(
+    public ApplicationResponseDTO updateApplicationStatus(
             @PathVariable Long applicationId,
-            @RequestParam ApplicationStatus status) {
+            @RequestBody UpdateApplicationStatusDTO request) {
 
-        return ResponseEntity.ok(
-                applicationService.updateStatus(applicationId, status)
-        );
+        return applicationService.updateApplicationStatus(
+                applicationId,
+                request.getStatus());
     }
     @GetMapping("/{applicationId}/resume")
     public ResponseEntity<Resource>
