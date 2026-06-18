@@ -13,11 +13,14 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
     List<Application> findByCandidate(User candidate);
     List<Application> findByJob(Job job);
     boolean existsByCandidateAndJob(User candidate, Job job);
-    Long countByJobRecruiter(User recruiter);
-
     Long countByCandidate(User candidate);
 
     Long countByCandidateAndStatus(
             User candidate,
+            ApplicationStatus status);
+
+    Long countByJobRecruiter(User recruiter);
+    Long countByJobRecruiterAndStatus(
+            User recruiter,
             ApplicationStatus status);
 }

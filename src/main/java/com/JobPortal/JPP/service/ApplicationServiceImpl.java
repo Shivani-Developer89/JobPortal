@@ -2,6 +2,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
@@ -223,30 +224,55 @@ public class ApplicationServiceImpl implements ApplicationService {
         User candidate = application.getCandidate();
         String jobTitle = application.getJob().getTitle();
 
-        if(status == ApplicationStatus.ACCEPTED){
+        String subject;
+        String emailBody;
 
-            emailService.sendEmail(
-                    candidate.getEmail(),
-                    "Application Accepted - " + jobTitle,
-                    "Congratulations!\n\n" +
-                            "Your application for " + jobTitle +
-                            " has been accepted.\n\n" +
-                            "Regards,\nJob Portal Team"
-            );
+        switch (status) {
+
+            case SHORTLISTED:
+                subject = "Application Shortlisted - " + jobTitle;
+                emailBody =
+                        "Hello " + candidate.getName() + ",\n\n" +
+                                "Good news! Your application for " + jobTitle +
+                                " has been shortlisted.\n\n" +
+                                "The recruiter will contact you regarding the next steps.\n\n" +
+                                "Regards,\nJob Portal Team";
+                break;
+
+            case HIRED:
+                subject = "Congratulations! You've Been Selected";
+                emailBody =
+                        "Hello " + candidate.getName() + ",\n\n" +
+                                "Congratulations!\n\n" +
+                                "We are pleased to inform you that you have been selected for the position of "
+                                + jobTitle + ".\n\n" +
+                                "We wish you success in your new role.\n\n" +
+                                "Regards,\nJob Portal Team";
+                break;
+
+            case REJECTED:
+                subject = "Application Update - " + jobTitle;
+                emailBody =
+                        "Hello " + candidate.getName() + ",\n\n" +
+                                "Thank you for your interest in " + jobTitle + ".\n\n" +
+                                "After careful consideration, we have decided to move forward with other candidates.\n\n" +
+                                "We wish you success in your future opportunities.\n\n" +
+                                "Regards,\nJob Portal Team";
+                break;
+
+            default:
+                subject = "Application Status Updated";
+                emailBody =
+                        "Hello " + candidate.getName() + ",\n\n" +
+                                "Your application status has been updated to: "
+                                + status + ".\n\n" +
+                                "Regards,\nJob Portal Team";
         }
-
-        if(status == ApplicationStatus.REJECTED){
-
-            emailService.sendEmail(
-                    candidate.getEmail(),
-                    "Application Update - " + jobTitle,
-                    "Thank you for applying.\n\n" +
-                            "Unfortunately your application for " + jobTitle +
-                            " was not selected.\n\n" +
-                            "Regards,\nJob Portal Team"
-            );
-        }
-
+        emailService.sendEmail(
+                candidate.getEmail(),
+                subject,
+                emailBody
+        );
         ApplicationResponseDTO dto = new ApplicationResponseDTO();
 
         dto.setId(application.getId());
@@ -320,13 +346,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 applicationRepository
                         .countByCandidateAndStatus(
                                 candidate,
-                                ApplicationStatus.PENDING));
+                                ApplicationStatus.HIRED));
 
         dto.setAcceptedApplications(
                 applicationRepository
                         .countByCandidateAndStatus(
                                 candidate,
-                                ApplicationStatus.ACCEPTED));
+                                ApplicationStatus.SHORTLISTED));
 
         dto.setRejectedApplications(
                 applicationRepository
@@ -336,7 +362,108 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
+    @Override
+    public RecruiterDashboardResponseDTO getRecruiterDashboard() {
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if(recruiter.getRole() != Role.RECRUITER){
+            throw new RuntimeException(
+                    "Only recruiters can access dashboard");
+        }
+
+        RecruiterDashboardResponseDTO dto =
+                new RecruiterDashboardResponseDTO();
+
+        dto.setTotalJobs(
+                jobRepository.countByRecruiter(recruiter));
+
+        dto.setTotalApplications(
+                applicationRepository
+                        .countByJobRecruiter(recruiter));
+
+        dto.setShortlisted(
+                applicationRepository
+                        .countByJobRecruiterAndStatus(
+                                recruiter,
+                                ApplicationStatus.SHORTLISTED));
+
+        dto.setHired(
+                applicationRepository
+                        .countByJobRecruiterAndStatus(
+                                recruiter,
+                                ApplicationStatus.HIRED));
+
+        dto.setRejected(
+                applicationRepository
+                        .countByJobRecruiterAndStatus(
+                                recruiter,
+                                ApplicationStatus.REJECTED));
+
+        return dto;
+    }
+
+    @Override
+    public ApplicationResponseDTO withdrawApplication(Long applicationId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User candidate = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        Application application =
+                applicationRepository.findById(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Application not found"));
+
+        if(!application.getCandidate().getId()
+                .equals(candidate.getId())) {
+            throw new RuntimeException(
+                    "You can only withdraw your own application");
+        }
+
+        if(application.getStatus() == ApplicationStatus.HIRED) {
+            throw new RuntimeException(
+                    "Cannot withdraw a hired application");
+        }
+
+        if(application.getStatus() == ApplicationStatus.REJECTED) {
+            throw new RuntimeException(
+                    "Cannot withdraw a rejected application");
+        }
+
+        if(application.getStatus() == ApplicationStatus.WITHDRAWN) {
+            throw new RuntimeException(
+                    "Application already withdrawn");
+        }
+
+        application.setStatus(ApplicationStatus.WITHDRAWN);
+
+        application = applicationRepository.save(application);
+
+        ApplicationResponseDTO dto =
+                new ApplicationResponseDTO();
+
+        dto.setId(application.getId());
+        dto.setCandidateId(application.getCandidate().getId());
+        dto.setJobId(application.getJob().getId());
+        dto.setAppliedAt(application.getAppliedAt());
+        dto.setStatus(application.getStatus());
+
+        return dto;
+    }
 
 
 

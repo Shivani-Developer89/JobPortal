@@ -3,6 +3,7 @@ package com.JobPortal.JPP.controller;
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.UpdateApplicationStatusDTO;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
@@ -69,13 +70,24 @@ public class ApplicationController {
                         "attachment; filename=\"resume.pdf\"")
                 .body(resource);
     }
-    @GetMapping("/dashboard")
+    @GetMapping("/candidateDashboard")
     public ResponseEntity<CandidateDashboardResponseDTO>
     getCandidateDashboard() {
 
         return ResponseEntity.ok(
                 applicationService
                         .getCandidateDashboard());
+    }
+    @GetMapping("/recruiterDashboard")
+    public RecruiterDashboardResponseDTO getRecruiterDashboard() {
+        return applicationService.getRecruiterDashboard();
+    }
+    @PutMapping("/{applicationId}/withdraw")
+    public ApplicationResponseDTO withdrawApplication(
+            @PathVariable Long applicationId) {
+
+        return applicationService
+                .withdrawApplication(applicationId);
     }
 
 }
