@@ -1,7 +1,6 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
-import com.JobPortal.JPP.dto.response.DashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.SavedJob;
@@ -176,34 +175,7 @@ public class JobServiceImpl implements JobService{
 
         return response;
     }
-    @Override
-    public DashboardResponseDTO getDashboard() {
 
-
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
-
-        if(recruiter.getRole() != Role.RECRUITER){
-            throw new RuntimeException(
-                    "Only recruiters can access dashboard");
-        }
-
-        DashboardResponseDTO dto =
-                new DashboardResponseDTO();
-
-        dto.setTotalJobs(
-                jobRepository.countByRecruiter(recruiter));
-
-        dto.setTotalApplications(applicationRepository.countByJobRecruiter(recruiter));
-
-        return dto;
-    }
     @Override
     public String saveJob(Long jobId) {
 

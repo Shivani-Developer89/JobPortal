@@ -16,4 +16,5 @@ public interface JobRepository extends JpaRepository<Job,Long> {
     List<Job> findByTitleContainingIgnoreCase(String title);
     Page<Job> findAll(Pageable pageable);
     Long countByRecruiter(User recruiter);
+
 }
