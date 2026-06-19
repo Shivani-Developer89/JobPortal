@@ -1,4 +1,10 @@
 package com.JobPortal.JPP.dto.response;
 
-public class ResetPassword {
+import lombok.Data;
+
+@Data
+public class ResetPasswordDTO {
+    private  String email;
+    private  String otp;
+    private String newPassword;
 }
