@@ -1,10 +1,7 @@
 package com.JobPortal.JPP.controller;
 
 
-import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
-import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
-import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
-import com.JobPortal.JPP.dto.response.UpdateApplicationStatusDTO;
+import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.core.io.Resource;
@@ -88,6 +85,13 @@ public class ApplicationController {
 
         return applicationService
                 .withdrawApplication(applicationId);
+    }
+    @GetMapping("/job/{jobId}/applicants")
+    public List<RecruiterApplicationResponseDTO>
+    viewApplicants(@PathVariable Long jobId){
+
+        return applicationService
+                .viewApplicants(jobId);
     }
 
 }

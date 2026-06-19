@@ -2,6 +2,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.RecruiterApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
@@ -464,7 +465,63 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
+    @Override
+    public List<RecruiterApplicationResponseDTO>
+    viewApplicants(Long jobId) {
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if(recruiter.getRole() != Role.RECRUITER){
+            throw new RuntimeException(
+                    "Only recruiters can view applicants");
+        }
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
+
+        if(!job.getRecruiter().getId()
+                .equals(recruiter.getId())) {
+
+            throw new RuntimeException(
+                    "You can only view applicants for your own jobs");
+        }
+
+        List<Application> applications =
+                applicationRepository.findByJob(job);
+
+        List<RecruiterApplicationResponseDTO> response =
+                new ArrayList<>();
+
+        for(Application application : applications){
+
+            RecruiterApplicationResponseDTO dto =
+                    new RecruiterApplicationResponseDTO();
+
+            dto.setApplicationId(application.getId());
+            dto.setCandidateName(
+                    application.getCandidate().getName());
+            dto.setCandidateEmail(
+                    application.getCandidate().getEmail());
+            dto.setStatus(application.getStatus());
+            dto.setAppliedAt(application.getAppliedAt());
+            dto.setResumeUrl(
+                    "/applications/" + application.getId() + "/resume"
+            );
+
+            response.add(dto);
+        }
+
+        return response;
+    }
 
 
 
