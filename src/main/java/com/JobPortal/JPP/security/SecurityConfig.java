@@ -22,10 +22,13 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
-
-                        .authorizeHttpRequests(auth -> auth
-                                .anyRequest().permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/auth/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
