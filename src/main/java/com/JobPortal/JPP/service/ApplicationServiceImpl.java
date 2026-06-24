@@ -11,6 +11,7 @@ import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.AccessDeniedException;
 import com.JobPortal.JPP.exceptions.AlreadyAppliedException;
+import com.JobPortal.JPP.exceptions.ResumeNotFoundException;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
@@ -54,8 +55,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         if(candidate.getResumePath() == null ||
                 candidate.getResumePath().isEmpty()) {
-            throw new RuntimeException(
-                    "Please upload resume before applying");
+            throw new ResumeNotFoundException(
+                    "Please upload resume before applying"
+            );
         }
         Job job = jobRepository.findById(id).orElseThrow(() ->
                     new RuntimeException("Job not found"));
