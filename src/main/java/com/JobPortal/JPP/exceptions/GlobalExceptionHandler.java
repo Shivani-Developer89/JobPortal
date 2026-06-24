@@ -80,4 +80,14 @@ public class GlobalExceptionHandler {
                 error,
                 HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(
+            ResumeNotFoundException.class)
+    public ResponseEntity<String>
+    handleResumeException(
+            ResumeNotFoundException ex) {
+
+        return ResponseEntity
+                .badRequest()
+                .body(ex.getMessage());
+    }
 }
