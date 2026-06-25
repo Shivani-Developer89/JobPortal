@@ -14,6 +14,7 @@ public class ApplicationResponseDTO {
         private Long candidateId;
 
         private Long jobId;
+        private String jobTitle;
 
         private ApplicationStatus status;
 
