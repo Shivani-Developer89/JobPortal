@@ -16,5 +16,5 @@ public class RecruiterApplicationResponseDTO {
     private ApplicationStatus status;
 
     private LocalDateTime appliedAt;
-    private String ResumeUrl;
+    private String resumeUrl;
 }

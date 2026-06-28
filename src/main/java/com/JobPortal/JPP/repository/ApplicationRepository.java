@@ -23,5 +23,5 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
     Long countByJobRecruiterAndStatus(
             User recruiter,
             ApplicationStatus status);
-
+    List<Application> findTop10ByJobRecruiterOrderByAppliedAtDesc(User recruiter);
 }

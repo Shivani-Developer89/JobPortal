@@ -528,6 +528,42 @@ public class ApplicationServiceImpl implements ApplicationService {
         return response;
     }
 
+    private RecruiterApplicationResponseDTO convertToRecruiterDTO(Application application) {
+
+        RecruiterApplicationResponseDTO dto = new RecruiterApplicationResponseDTO();
+
+        dto.setApplicationId(application.getId());
+        dto.setCandidateName(application.getCandidate().getName());
+        dto.setCandidateEmail(application.getCandidate().getEmail());
+        dto.setStatus(application.getStatus());
+        dto.setAppliedAt(application.getAppliedAt());
+
+        dto.setResumeUrl("/applications/" + application.getId() + "/resume");
+
+        return dto;
+    }
+
+    @Override
+    public List<RecruiterApplicationResponseDTO> getRecentApplications() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        List<Application> applications =
+                applicationRepository
+                        .findTop10ByJobRecruiterOrderByAppliedAtDesc(recruiter);
+
+        return applications.stream()
+                .map(this::convertToRecruiterDTO)
+                .toList();
+    }
 
 
 

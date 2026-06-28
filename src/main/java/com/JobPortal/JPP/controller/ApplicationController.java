@@ -93,5 +93,13 @@ public class ApplicationController {
         return applicationService
                 .viewApplicants(jobId);
     }
+    @GetMapping("/recruiter/recent")
+    public ResponseEntity<List<RecruiterApplicationResponseDTO>>
+    getRecentApplications() {
+
+        return ResponseEntity.ok(
+                applicationService.getRecentApplications()
+        );
+    }
 
 }

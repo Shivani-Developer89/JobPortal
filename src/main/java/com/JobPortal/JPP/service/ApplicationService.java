@@ -4,6 +4,7 @@ import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
 import com.JobPortal.JPP.dto.response.RecruiterApplicationResponseDTO;
 import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
+import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -25,5 +26,8 @@ public interface ApplicationService {
     ApplicationResponseDTO withdrawApplication(Long applicationId);
     List<RecruiterApplicationResponseDTO>
     viewApplicants(Long jobId);
+
+    List<RecruiterApplicationResponseDTO> getRecentApplications();
+
 
 }
