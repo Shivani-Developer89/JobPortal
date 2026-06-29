@@ -62,7 +62,13 @@ public class JobController {
         return ResponseEntity.ok(
                 jobService.searchJobs(title));
     }
+    @GetMapping("/my")
+    public ResponseEntity<List<JobResponseDTO>> getMyJobs() {
 
+        return ResponseEntity.ok(
+                jobService.getMyJobs()
+        );
+    }
     @PostMapping("/{jobId}/save")
     public ResponseEntity<String> saveJob(@PathVariable Long jobId){
         return ResponseEntity.ok(jobService.saveJob(jobId));

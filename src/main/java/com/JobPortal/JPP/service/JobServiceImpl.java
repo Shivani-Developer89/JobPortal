@@ -31,6 +31,7 @@ public class JobServiceImpl implements JobService{
     private  final ApplicationRepository applicationRepository;
     private final SavedJobRepository savedJobRepository;
 
+
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
 
@@ -276,5 +277,38 @@ public class JobServiceImpl implements JobService{
         savedJobRepository.delete(savedJob);
 
         return "Job removed from saved jobs";
+    }
+    @Override
+    public List<JobResponseDTO> getMyJobs() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        List<Job> jobs = jobRepository.findByRecruiter(recruiter);
+
+        List<JobResponseDTO> response = new ArrayList<>();
+
+        for (Job job : jobs) {
+
+            JobResponseDTO dto = new JobResponseDTO();
+
+            dto.setId(job.getId());
+            dto.setTitle(job.getTitle());
+            dto.setDescription(job.getDescription());
+            dto.setLocation(job.getLocation());
+            dto.setSalary(job.getSalary());
+            dto.setCreatedAt(job.getCreatedAt());
+
+            response.add(dto);
+        }
+
+        return response;
     }
 }
