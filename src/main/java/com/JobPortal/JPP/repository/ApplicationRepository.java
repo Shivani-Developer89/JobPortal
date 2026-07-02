@@ -1,5 +1,6 @@
 package com.JobPortal.JPP.repository;
 
+import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
@@ -24,4 +25,5 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
             User recruiter,
             ApplicationStatus status);
     List<Application> findTop10ByJobRecruiterOrderByAppliedAtDesc(User recruiter);
+
 }

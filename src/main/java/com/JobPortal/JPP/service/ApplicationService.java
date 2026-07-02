@@ -1,9 +1,6 @@
 package com.JobPortal.JPP.service;
 
-import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
-import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
-import com.JobPortal.JPP.dto.response.RecruiterApplicationResponseDTO;
-import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import org.springframework.core.io.Resource;
@@ -28,6 +25,7 @@ public interface ApplicationService {
     viewApplicants(Long jobId);
 
     List<RecruiterApplicationResponseDTO> getRecentApplications();
+    CandidateProfileResponseDTO getCandidateProfile(Long candidateId);
 
 
 }

@@ -1,9 +1,6 @@
 package com.JobPortal.JPP.service;
 
-import com.JobPortal.JPP.dto.response.ApplicationResponseDTO;
-import com.JobPortal.JPP.dto.response.CandidateDashboardResponseDTO;
-import com.JobPortal.JPP.dto.response.RecruiterApplicationResponseDTO;
-import com.JobPortal.JPP.dto.response.RecruiterDashboardResponseDTO;
+import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
@@ -539,6 +536,25 @@ public class ApplicationServiceImpl implements ApplicationService {
         return applications.stream()
                 .map(this::convertToRecruiterDTO)
                 .toList();
+    }
+    @Override
+    public CandidateProfileResponseDTO getCandidateProfile(Long candidateId) {
+
+        User candidate = userRepository.findById(candidateId)
+                .orElseThrow(() ->
+                        new RuntimeException("Candidate not found"));
+
+        CandidateProfileResponseDTO dto =
+                new CandidateProfileResponseDTO();
+
+        dto.setId(candidate.getId());
+        dto.setName(candidate.getName());
+        dto.setEmail(candidate.getEmail());
+
+
+
+
+        return dto;
     }
 
 
