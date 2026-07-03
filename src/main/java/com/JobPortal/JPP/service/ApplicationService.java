@@ -25,7 +25,7 @@ public interface ApplicationService {
     viewApplicants(Long jobId);
 
     List<RecruiterApplicationResponseDTO> getRecentApplications();
-    CandidateProfileResponseDTO getCandidateProfile(Long candidateId);
+
 
 
 }

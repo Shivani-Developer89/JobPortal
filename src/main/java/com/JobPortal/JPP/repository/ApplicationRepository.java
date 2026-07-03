@@ -25,5 +25,5 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
             User recruiter,
             ApplicationStatus status);
     List<Application> findTop10ByJobRecruiterOrderByAppliedAtDesc(User recruiter);
-
+    boolean existsByCandidateAndJobRecruiter(User candidate, User recruiter);
 }

@@ -537,25 +537,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .map(this::convertToRecruiterDTO)
                 .toList();
     }
-    @Override
-    public CandidateProfileResponseDTO getCandidateProfile(Long candidateId) {
 
-        User candidate = userRepository.findById(candidateId)
-                .orElseThrow(() ->
-                        new RuntimeException("Candidate not found"));
-
-        CandidateProfileResponseDTO dto =
-                new CandidateProfileResponseDTO();
-
-        dto.setId(candidate.getId());
-        dto.setName(candidate.getName());
-        dto.setEmail(candidate.getEmail());
-
-
-
-
-        return dto;
-    }
 
 
 

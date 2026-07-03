@@ -101,13 +101,6 @@ public class ApplicationController {
                 applicationService.getRecentApplications()
         );
     }
-    @GetMapping("/recruiter/candidate/{candidateId}")
-    public ResponseEntity<CandidateProfileResponseDTO> getCandidateProfile(
-            @PathVariable Long candidateId) {
 
-        return ResponseEntity.ok(
-                applicationService.getCandidateProfile(candidateId)
-        );
-    }
 
 }
