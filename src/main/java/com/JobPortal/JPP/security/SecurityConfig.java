@@ -3,6 +3,7 @@ import com.JobPortal.JPP.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,9 +26,21 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/**"
-                        ).permitAll()
+
+                        .requestMatchers("/auth/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST,
+                                "/candidate-profile/**")
+                        .hasRole("CANDIDATE")
+
+                        .requestMatchers(HttpMethod.GET,
+                                "/candidate-profile/me")
+                        .hasRole("CANDIDATE")
+
+                        .requestMatchers(HttpMethod.GET,
+                                "/candidate-profile/recruiter/**")
+                        .hasRole("RECRUITER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
