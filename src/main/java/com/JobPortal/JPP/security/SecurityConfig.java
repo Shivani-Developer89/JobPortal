@@ -28,10 +28,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/auth/**").permitAll()
-
                         .requestMatchers(HttpMethod.POST,
                                 "/candidate-profile/**")
-                        .hasRole("CANDIDATE")
+                        .permitAll()
 
                         .requestMatchers(HttpMethod.GET,
                                 "/candidate-profile/me")

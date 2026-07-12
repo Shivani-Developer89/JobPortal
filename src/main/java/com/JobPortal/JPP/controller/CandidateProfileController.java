@@ -19,6 +19,8 @@ public class CandidateProfileController {
     public ResponseEntity<CandidateProfileResponseDTO> createOrUpdateProfile(
             @RequestBody CandidateProfileRequestDTO request) {
 
+        System.out.println(">>> Controller reached <<<");
+
         return ResponseEntity.ok(
                 candidateProfileService.createOrUpdateProfile(request)
         );

@@ -30,4 +30,6 @@ public class CandidateProfile {
     private String github;
 
     private String linkedin;
+
+    private String leetcode;
 }

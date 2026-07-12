@@ -54,13 +54,14 @@ public class UserController {
     @GetMapping("/resume/download")
     public ResponseEntity<Resource> downloadResume() {
 
-        Resource resource =
-                userService.downloadResume();
+        Resource resource = userService.downloadResume();
+
+        String filename = resource.getFilename();
 
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"resume.pdf\"")
+                        "attachment; filename=\"" + filename + "\"")
                 .body(resource);
     }
 }

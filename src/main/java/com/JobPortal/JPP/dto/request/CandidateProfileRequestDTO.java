@@ -18,4 +18,5 @@ public class CandidateProfileRequestDTO {
     private String github;
 
     private String linkedin;
+    private String leetcode;
 }

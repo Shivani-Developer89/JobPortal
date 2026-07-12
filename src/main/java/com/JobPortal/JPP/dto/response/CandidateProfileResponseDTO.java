@@ -19,6 +19,6 @@ public class CandidateProfileResponseDTO {
     private String experience;
     private String github;
     private String linkedin;
-
+    private String leetcode;
 
 }

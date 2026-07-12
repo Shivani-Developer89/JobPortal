@@ -53,6 +53,7 @@ public class CandidateProfileServiceImpl
         profile.setExperience(request.getExperience());
         profile.setGithub(request.getGithub());
         profile.setLinkedin(request.getLinkedin());
+        profile.setLeetcode(request.getLeetcode());
 
         profile = candidateProfileRepository.save(profile);
 
@@ -132,6 +133,7 @@ public class CandidateProfileServiceImpl
         dto.setExperience(profile.getExperience());
         dto.setGithub(profile.getGithub());
         dto.setLinkedin(profile.getLinkedin());
+        dto.setLeetcode(profile.getLeetcode());
 
         return dto;
     }
