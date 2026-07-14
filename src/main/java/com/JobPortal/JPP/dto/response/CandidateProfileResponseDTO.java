@@ -1,7 +1,10 @@
 package com.JobPortal.JPP.dto.response;
 
 
+import com.JobPortal.JPP.dto.request.EducationDTO;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class CandidateProfileResponseDTO {
@@ -14,7 +17,7 @@ public class CandidateProfileResponseDTO {
     // From CandidateProfile
     private String phone;
     private String location;
-    private String education;
+    private List<EducationDTO> education;
     private String skills;
     private String experience;
     private String github;

@@ -3,24 +3,33 @@ package com.JobPortal.JPP.service;
 import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.entity.CandidateProfile;
+import com.JobPortal.JPP.entity.Education;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
+import com.JobPortal.JPP.mapper.EducationMapper;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.CandidateProfileRepository;
+import com.JobPortal.JPP.repository.EducationRepository;
 import com.JobPortal.JPP.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CandidateProfileServiceImpl
         implements CandidateProfileService {
 
     private final CandidateProfileRepository candidateProfileRepository;
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
+    private final EducationRepository educationRepository;
+    private final EducationMapper educationMapper;
 
     @Override
     public CandidateProfileResponseDTO createOrUpdateProfile(
@@ -48,7 +57,7 @@ public class CandidateProfileServiceImpl
         profile.setCandidate(candidate);
         profile.setPhone(request.getPhone());
         profile.setLocation(request.getLocation());
-        profile.setEducation(request.getEducation());
+
         profile.setSkills(request.getSkills());
         profile.setExperience(request.getExperience());
         profile.setGithub(request.getGithub());
@@ -57,7 +66,23 @@ public class CandidateProfileServiceImpl
 
         profile = candidateProfileRepository.save(profile);
 
+        educationRepository.deleteByCandidateProfile(profile);
+
+        List<Education> educations = request.getEducation()
+                .stream()
+                .map(educationMapper::toEntity)
+                .toList();
+
+        for (Education education : educations) {
+            education.setCandidateProfile(profile);
+        }
+
+        educationRepository.saveAll(educations);
+
+        profile.setEducation(educations);
+
         return convertToDTO(profile);
+
     }
 
     @Override
@@ -128,7 +153,12 @@ public class CandidateProfileServiceImpl
 
         dto.setPhone(profile.getPhone());
         dto.setLocation(profile.getLocation());
-        dto.setEducation(profile.getEducation());
+        dto.setEducation(
+                profile.getEducation()
+                        .stream()
+                        .map(educationMapper::toDTO)
+                        .toList()
+        );
         dto.setSkills(profile.getSkills());
         dto.setExperience(profile.getExperience());
         dto.setGithub(profile.getGithub());

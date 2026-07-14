@@ -2,6 +2,9 @@ package com.JobPortal.JPP.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "candidate_profiles")
@@ -19,7 +22,12 @@ public class CandidateProfile {
 
     private String location;
 
-    private String education;
+    @OneToMany(
+            mappedBy = "candidateProfile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Education> education = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
     private String skills;

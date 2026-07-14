@@ -2,6 +2,8 @@ package com.JobPortal.JPP.dto.request;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CandidateProfileRequestDTO {
 
@@ -9,7 +11,7 @@ public class CandidateProfileRequestDTO {
 
     private String location;
 
-    private String education;
+    private List<EducationDTO> education;
 
     private String skills;
 
