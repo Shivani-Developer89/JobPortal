@@ -1,17 +1,18 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
+import com.JobPortal.JPP.dto.request.EducationDTO;
+import com.JobPortal.JPP.dto.request.ExperienceDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.entity.CandidateProfile;
 import com.JobPortal.JPP.entity.Education;
+import com.JobPortal.JPP.entity.Experience;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.mapper.EducationMapper;
-import com.JobPortal.JPP.repository.ApplicationRepository;
-import com.JobPortal.JPP.repository.CandidateProfileRepository;
-import com.JobPortal.JPP.repository.EducationRepository;
-import com.JobPortal.JPP.repository.UserRepository;
+import com.JobPortal.JPP.mapper.ExperienceMapper;
+import com.JobPortal.JPP.repository.*;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +31,9 @@ public class CandidateProfileServiceImpl
     private final ApplicationRepository applicationRepository;
     private final EducationRepository educationRepository;
     private final EducationMapper educationMapper;
+    private final ExperienceRepository experienceRepository;
+    private final ExperienceMapper experienceMapper;
+
 
     @Override
     public CandidateProfileResponseDTO createOrUpdateProfile(
@@ -59,27 +63,35 @@ public class CandidateProfileServiceImpl
         profile.setLocation(request.getLocation());
 
         profile.setSkills(request.getSkills());
-        profile.setExperience(request.getExperience());
+
         profile.setGithub(request.getGithub());
         profile.setLinkedin(request.getLinkedin());
         profile.setLeetcode(request.getLeetcode());
 
-        profile = candidateProfileRepository.save(profile);
+        profile.getEducation().clear();
 
-        educationRepository.deleteByCandidateProfile(profile);
+        for (EducationDTO dto : request.getEducation()) {
 
-        List<Education> educations = request.getEducation()
-                .stream()
-                .map(educationMapper::toEntity)
-                .toList();
+            Education education = educationMapper.toEntity(dto);
 
-        for (Education education : educations) {
             education.setCandidateProfile(profile);
+
+            profile.getEducation().add(education);
         }
 
-        educationRepository.saveAll(educations);
 
-        profile.setEducation(educations);
+        profile.getExperience().clear();
+
+        for (ExperienceDTO dto : request.getExperience()) {
+
+            Experience experience = experienceMapper.toEntity(dto);
+
+            experience.setCandidateProfile(profile);
+
+            profile.getExperience().add(experience);
+        }
+
+        profile = candidateProfileRepository.save(profile);
 
         return convertToDTO(profile);
 
@@ -97,12 +109,40 @@ public class CandidateProfileServiceImpl
                 .orElseThrow(() ->
                         new UserDoesNotExist("User not found"));
 
-        CandidateProfile profile = candidateProfileRepository
-                .findByCandidate(candidate)
-                .orElseThrow(() ->
-                        new RuntimeException("Profile not found"));
+        CandidateProfileResponseDTO dto = new CandidateProfileResponseDTO();
 
-        return convertToDTO(profile);
+        dto.setCandidateId(candidate.getId());
+        dto.setName(candidate.getName());
+        dto.setEmail(candidate.getEmail());
+        candidateProfileRepository.findByCandidate(candidate)
+                .ifPresent(profile -> {
+
+                    dto.setPhone(profile.getPhone());
+                    dto.setLocation(profile.getLocation());
+
+                    dto.setEducation(
+                            profile.getEducation()
+                                    .stream()
+                                    .map(educationMapper::toDTO)
+                                    .toList()
+                    );
+
+                    dto.setExperience(
+                            profile.getExperience()
+                                    .stream()
+                                    .map(experienceMapper::toDTO)
+                                    .toList()
+                    );
+                    dto.setResumePath(candidate.getResumePath());
+
+                    dto.setSkills(profile.getSkills());
+                    dto.setGithub(profile.getGithub());
+                    dto.setLinkedin(profile.getLinkedin());
+                    dto.setLeetcode(profile.getLeetcode());
+
+                });
+
+        return dto;
     }
 
     @Override
@@ -160,7 +200,12 @@ public class CandidateProfileServiceImpl
                         .toList()
         );
         dto.setSkills(profile.getSkills());
-        dto.setExperience(profile.getExperience());
+        dto.setExperience(
+                profile.getExperience()
+                        .stream()
+                        .map(experienceMapper::toDTO)
+                        .toList()
+        );
         dto.setGithub(profile.getGithub());
         dto.setLinkedin(profile.getLinkedin());
         dto.setLeetcode(profile.getLeetcode());

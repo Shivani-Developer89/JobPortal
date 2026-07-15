@@ -2,6 +2,7 @@ package com.JobPortal.JPP.dto.response;
 
 
 import com.JobPortal.JPP.dto.request.EducationDTO;
+import com.JobPortal.JPP.dto.request.ExperienceDTO;
 import lombok.Data;
 
 import java.util.List;
@@ -18,8 +19,10 @@ public class CandidateProfileResponseDTO {
     private String phone;
     private String location;
     private List<EducationDTO> education;
+
+    private List<ExperienceDTO> experience;
+    private String resumePath;
     private String skills;
-    private String experience;
     private String github;
     private String linkedin;
     private String leetcode;

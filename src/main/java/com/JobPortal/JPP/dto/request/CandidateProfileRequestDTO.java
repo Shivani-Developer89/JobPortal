@@ -13,9 +13,11 @@ public class CandidateProfileRequestDTO {
 
     private List<EducationDTO> education;
 
-    private String skills;
 
-    private String experience;
+
+    private List<ExperienceDTO> experience;
+    private String resumePath;
+    private String skills;
 
     private String github;
 

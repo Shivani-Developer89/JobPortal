@@ -29,12 +29,18 @@ public class CandidateProfile {
     )
     private List<Education> education = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "candidateProfile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Experience> experience = new ArrayList<>();
+    private String resumePath;
+
     @Column(columnDefinition = "TEXT")
     private String skills;
 
     @Column(columnDefinition = "TEXT")
-    private String experience;
-
     private String github;
 
     private String linkedin;
