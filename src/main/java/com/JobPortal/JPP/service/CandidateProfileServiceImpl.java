@@ -210,6 +210,9 @@ public class CandidateProfileServiceImpl
         dto.setLinkedin(profile.getLinkedin());
         dto.setLeetcode(profile.getLeetcode());
 
+        dto.setResumePath(candidate.getResumePath());
+        dto.setResumeUploadedAt(candidate.getResumeUploadedAt());
+
         return dto;
     }
 }

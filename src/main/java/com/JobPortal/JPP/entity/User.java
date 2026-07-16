@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -23,5 +25,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
     private String resumePath;
+    @Column(name = "resume_uploaded_at")
+    private LocalDateTime resumeUploadedAt;
 
 }

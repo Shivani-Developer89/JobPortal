@@ -5,6 +5,7 @@ import com.JobPortal.JPP.dto.request.EducationDTO;
 import com.JobPortal.JPP.dto.request.ExperienceDTO;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,6 +23,7 @@ public class CandidateProfileResponseDTO {
 
     private List<ExperienceDTO> experience;
     private String resumePath;
+    private LocalDateTime resumeUploadedAt;
     private String skills;
     private String github;
     private String linkedin;

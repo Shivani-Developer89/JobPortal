@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -145,6 +146,7 @@ public class UserServiceImpl implements UserService {
                 StandardCopyOption.REPLACE_EXISTING);
 
         user.setResumePath(filePath.toString());
+        user.setResumeUploadedAt(LocalDateTime.now());
         System.out.println("UPLOAD USER = " + email);
         System.out.println("SAVED PATH = " + filePath);
 

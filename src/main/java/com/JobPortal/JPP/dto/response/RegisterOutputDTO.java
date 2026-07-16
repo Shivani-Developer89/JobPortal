@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,4 +21,6 @@ public class RegisterOutputDTO {
 
     private Role role;
     private String resumePath;
+
+    private LocalDateTime resumeUploadedAt;
 }
