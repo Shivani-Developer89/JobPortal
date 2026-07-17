@@ -12,8 +12,6 @@ import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.SavedJobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-
-
 import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,12 +23,12 @@ import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
-public class JobServiceImpl implements JobService{
+public class JobServiceImpl implements JobService {
+
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
-    private  final ApplicationRepository applicationRepository;
+    private final ApplicationRepository applicationRepository;
     private final SavedJobRepository savedJobRepository;
-
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
@@ -43,74 +41,50 @@ public class JobServiceImpl implements JobService{
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserDoesNotExist("User not found"));
 
-        if(user.getRole() != Role.RECRUITER){
+        if (user.getRole() != Role.RECRUITER) {
             throw new RuntimeException("Only recruiters can create jobs");
         }
 
         Job job = new Job();
+
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
         job.setSalary(jobRequestDTO.getSalary());
+        job.setJobType(jobRequestDTO.getJobType());
+        job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
         job.setCreatedAt(LocalDateTime.now());
         job.setRecruiter(user);
+
         job = jobRepository.save(job);
-        JobResponseDTO jobResponseDTO = new JobResponseDTO();
 
-        jobResponseDTO.setId(job.getId());
-        jobResponseDTO.setTitle(job.getTitle());
-        jobResponseDTO.setDescription(job.getDescription());
-        jobResponseDTO.setLocation(job.getLocation());
-        jobResponseDTO.setSalary(job.getSalary());
-        jobResponseDTO.setCreatedAt(job.getCreatedAt());
-
-
-        return jobResponseDTO;
+        return convertToDTO(job);
     }
 
     @Override
     public JobResponseDTO getJobById(Long id) {
-        Job job =  jobRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Job not found"));
-        JobResponseDTO dto = new JobResponseDTO();
-        dto.setId(job.getId());
-        dto.setTitle(job.getTitle());
-        dto.setDescription(job.getDescription());
-        dto.setLocation(job.getLocation());
-        dto.setSalary(job.getSalary());
-        dto.setCreatedAt(job.getCreatedAt());
 
-        return dto;
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        return convertToDTO(job);
     }
 
     @Override
-    public Page<JobResponseDTO> getAllJobs(int page, int size ,   String sort) {
-        Pageable pageable =
-                PageRequest.of(
-                        page,
-                        size,
-                        Sort.by(sort)
-                );
+    public Page<JobResponseDTO> getAllJobs(int page, int size, String sort) {
 
-        Page<Job> jobs =
-                jobRepository.findAll(pageable);
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sort)
+        );
 
-        List<JobResponseDTO> response =
-                new ArrayList<>();
+        Page<Job> jobs = jobRepository.findAll(pageable);
+
+        List<JobResponseDTO> response = new ArrayList<>();
 
         for (Job job : jobs.getContent()) {
-
-            JobResponseDTO dto =
-                    new JobResponseDTO();
-
-            dto.setId(job.getId());
-            dto.setTitle(job.getTitle());
-            dto.setDescription(job.getDescription());
-            dto.setLocation(job.getLocation());
-            dto.setSalary(job.getSalary());
-            dto.setCreatedAt(job.getCreatedAt());
-
-            response.add(dto);
+            response.add(convertToDTO(job));
         }
 
         return new PageImpl<>(
@@ -121,57 +95,45 @@ public class JobServiceImpl implements JobService{
     }
 
     @Override
-    public JobResponseDTO updateJob(Long id ,JobRequestDTO jobRequestDTO ) {
-        Job job = new Job();
-        job.setId(id);
+    public JobResponseDTO updateJob(Long id, JobRequestDTO jobRequestDTO) {
+
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
         job.setSalary(jobRequestDTO.getSalary());
-        job.setCreatedAt(jobRequestDTO.getCreatedAt());
+        job.setJobType(jobRequestDTO.getJobType());
+        job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
 
         job = jobRepository.save(job);
 
-        JobResponseDTO jobResponseDTO = new JobResponseDTO();
-
-        jobResponseDTO.setId(job.getId());
-        jobResponseDTO.setTitle(job.getTitle());
-        jobResponseDTO.setDescription(job.getDescription());
-        jobResponseDTO.setLocation(job.getLocation());
-        jobResponseDTO.setSalary(job.getSalary());
-        jobResponseDTO.setCreatedAt(job.getCreatedAt());
-
-        return jobResponseDTO;
-
-
+        return convertToDTO(job);
     }
 
     @Override
     public String removeJob(Long id) {
-        String name = jobRepository.findById(id).orElse(null).getTitle();
-        jobRepository.deleteById(id);
-        return "Job title : " +  name + " and Id : "  +id  +   " has been removed successfully! ";
+
+        Job job = jobRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        jobRepository.delete(job);
+
+        return "Job title : " + job.getTitle()
+                + " and Id : " + id
+                + " has been removed successfully!";
     }
+
     @Override
     public List<JobResponseDTO> searchJobs(String title) {
 
-        List<Job> jobs =
-                jobRepository.findByTitleContainingIgnoreCase(title);
+        List<Job> jobs = jobRepository.findByTitleContainingIgnoreCase(title);
 
         List<JobResponseDTO> response = new ArrayList<>();
 
         for (Job job : jobs) {
-
-            JobResponseDTO dto = new JobResponseDTO();
-
-            dto.setId(job.getId());
-            dto.setTitle(job.getTitle());
-            dto.setDescription(job.getDescription());
-            dto.setLocation(job.getLocation());
-            dto.setSalary(job.getSalary());
-            dto.setCreatedAt(job.getCreatedAt());
-
-            response.add(dto);
+            response.add(convertToDTO(job));
         }
 
         return response;
@@ -185,26 +147,20 @@ public class JobServiceImpl implements JobService{
                 .getAuthentication()
                 .getName();
 
-        User candidate = userRepository
-                .findByEmail(email)
+        User candidate = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserDoesNotExist("User not found"));
 
-        if(candidate.getRole() != Role.CANDIDATE){
-            throw new RuntimeException(
-                    "Only candidates can save jobs");
+        if (candidate.getRole() != Role.CANDIDATE) {
+            throw new RuntimeException("Only candidates can save jobs");
         }
 
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() ->
                         new RuntimeException("Job not found"));
 
-        if(savedJobRepository
-                .findByCandidateAndJob(candidate, job)
-                .isPresent()) {
-
-            throw new RuntimeException(
-                    "Job already saved");
+        if (savedJobRepository.findByCandidateAndJob(candidate, job).isPresent()) {
+            throw new RuntimeException("Job already saved");
         }
 
         SavedJob savedJob = new SavedJob();
@@ -216,6 +172,7 @@ public class JobServiceImpl implements JobService{
 
         return "Job saved successfully";
     }
+
     @Override
     public List<JobResponseDTO> getSavedJobs() {
 
@@ -228,31 +185,17 @@ public class JobServiceImpl implements JobService{
                 .orElseThrow(() ->
                         new UserDoesNotExist("User not found"));
 
-        List<SavedJob> savedJobs =
-                savedJobRepository.findByCandidate(candidate);
+        List<SavedJob> savedJobs = savedJobRepository.findByCandidate(candidate);
 
-        List<JobResponseDTO> response =
-                new ArrayList<>();
+        List<JobResponseDTO> response = new ArrayList<>();
 
         for (SavedJob savedJob : savedJobs) {
-
-            Job job = savedJob.getJob();
-
-            JobResponseDTO dto =
-                    new JobResponseDTO();
-
-            dto.setId(job.getId());
-            dto.setTitle(job.getTitle());
-            dto.setDescription(job.getDescription());
-            dto.setLocation(job.getLocation());
-            dto.setSalary(job.getSalary());
-            dto.setCreatedAt(job.getCreatedAt());
-
-            response.add(dto);
+            response.add(convertToDTO(savedJob.getJob()));
         }
 
         return response;
     }
+
     @Override
     public String unsaveJob(Long jobId) {
 
@@ -278,6 +221,7 @@ public class JobServiceImpl implements JobService{
 
         return "Job removed from saved jobs";
     }
+
     @Override
     public List<JobResponseDTO> getMyJobs() {
 
@@ -286,8 +230,7 @@ public class JobServiceImpl implements JobService{
                 .getAuthentication()
                 .getName();
 
-        User recruiter = userRepository
-                .findByEmail(email)
+        User recruiter = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserDoesNotExist("User not found"));
 
@@ -296,19 +239,31 @@ public class JobServiceImpl implements JobService{
         List<JobResponseDTO> response = new ArrayList<>();
 
         for (Job job : jobs) {
-
-            JobResponseDTO dto = new JobResponseDTO();
-
-            dto.setId(job.getId());
-            dto.setTitle(job.getTitle());
-            dto.setDescription(job.getDescription());
-            dto.setLocation(job.getLocation());
-            dto.setSalary(job.getSalary());
-            dto.setCreatedAt(job.getCreatedAt());
-
-            response.add(dto);
+            response.add(convertToDTO(job));
         }
 
         return response;
+    }
+
+    private JobResponseDTO convertToDTO(Job job) {
+
+        JobResponseDTO dto = new JobResponseDTO();
+
+        dto.setId(job.getId());
+        dto.setTitle(job.getTitle());
+        dto.setDescription(job.getDescription());
+        dto.setLocation(job.getLocation());
+        dto.setSalary(job.getSalary());
+        dto.setJobType(job.getJobType());
+        dto.setExperienceLevel(job.getExperienceLevel());
+        dto.setCreatedAt(job.getCreatedAt());
+
+        // Recruiter details
+        dto.setRecruiterName(job.getRecruiter().getName());
+
+        // Uncomment after adding companyName to User
+        // dto.setCompanyName(job.getRecruiter().getCompanyName());
+
+        return dto;
     }
 }
