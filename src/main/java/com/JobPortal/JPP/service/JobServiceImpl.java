@@ -259,8 +259,11 @@ public class JobServiceImpl implements JobService {
         dto.setCreatedAt(job.getCreatedAt());
 
         // Recruiter details
-        dto.setRecruiterName(job.getRecruiter().getName());
-
+        if (job.getRecruiter() != null) {
+            dto.setRecruiterName(job.getRecruiter().getName());
+        } else {
+            dto.setRecruiterName("Unknown Recruiter");
+        }
         // Uncomment after adding companyName to User
         // dto.setCompanyName(job.getRecruiter().getCompanyName());
 

@@ -27,5 +27,7 @@ public class User {
     private String resumePath;
     @Column(name = "resume_uploaded_at")
     private LocalDateTime resumeUploadedAt;
+    @Column(nullable = true)
+    private String companyName;
 
 }
