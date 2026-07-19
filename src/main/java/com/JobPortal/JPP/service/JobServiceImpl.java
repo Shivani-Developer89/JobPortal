@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class JobServiceImpl implements JobService {
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
     private final SavedJobRepository savedJobRepository;
+
 
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
@@ -249,6 +252,26 @@ public class JobServiceImpl implements JobService {
 
         JobResponseDTO dto = new JobResponseDTO();
 
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null &&
+                authentication.isAuthenticated() &&
+                !"anonymousUser".equals(authentication.getName())) {
+
+            User candidate = userRepository
+                    .findByEmail(authentication.getName())
+                    .orElse(null);
+
+            if (candidate != null) {
+
+                boolean applied = applicationRepository
+                        .existsByCandidateAndJob(candidate, job);
+
+                dto.setApplied(applied);
+            }
+        }
+
         dto.setId(job.getId());
         dto.setTitle(job.getTitle());
         dto.setDescription(job.getDescription());
@@ -266,6 +289,9 @@ public class JobServiceImpl implements JobService {
         }
         // Uncomment after adding companyName to User
         // dto.setCompanyName(job.getRecruiter().getCompanyName());
+
+
+
 
         return dto;
     }

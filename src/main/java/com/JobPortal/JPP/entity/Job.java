@@ -36,4 +36,5 @@ public class Job {
     private ExperienceLevel experienceLevel;
 
     private LocalDateTime createdAt;
+
 }

@@ -44,4 +44,6 @@ public class JobResponseDTO {
     private String companyName;
 
     private LocalDateTime createdAt;
+
+    private boolean applied;
 }
