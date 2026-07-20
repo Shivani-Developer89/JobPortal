@@ -349,7 +349,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 applicationRepository
                         .countByCandidateAndStatus(
                                 candidate,
-                                ApplicationStatus.HIRED));
+                                ApplicationStatus.APPLIED));
 
         dto.setAcceptedApplications(
                 applicationRepository
@@ -435,6 +435,14 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .equals(candidate.getId())) {
             throw new RuntimeException(
                     "You can only withdraw your own application");
+        }
+        if (application.getStatus() != ApplicationStatus.APPLIED) {
+            throw new RuntimeException(
+                    "Only applied applications can be withdrawn");
+        }
+        if (application.getStatus() == ApplicationStatus.SHORTLISTED) {
+            throw new RuntimeException(
+                    "Cannot withdraw a shortlisted application");
         }
 
         if(application.getStatus() == ApplicationStatus.HIRED) {
