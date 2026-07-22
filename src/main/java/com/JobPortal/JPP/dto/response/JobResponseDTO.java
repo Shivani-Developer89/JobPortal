@@ -1,6 +1,7 @@
 package com.JobPortal.JPP.dto.response;
 
 import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.ExperienceLevel;
 import com.JobPortal.JPP.entity.enums.JobType;
 import lombok.Data;
@@ -46,4 +47,5 @@ public class JobResponseDTO {
     private LocalDateTime createdAt;
 
     private boolean applied;
+    private ApplicationStatus applicationStatus;
 }

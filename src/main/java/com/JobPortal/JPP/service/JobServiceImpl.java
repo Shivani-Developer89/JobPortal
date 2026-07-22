@@ -5,6 +5,7 @@ import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
@@ -289,6 +290,7 @@ public class JobServiceImpl implements JobService {
         }
         // Uncomment after adding companyName to User
         // dto.setCompanyName(job.getRecruiter().getCompanyName());
+
 
 
 
