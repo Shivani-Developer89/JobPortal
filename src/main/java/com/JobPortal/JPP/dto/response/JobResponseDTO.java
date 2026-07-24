@@ -4,48 +4,69 @@ import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.ExperienceLevel;
 import com.JobPortal.JPP.entity.enums.JobType;
+import com.JobPortal.JPP.entity.enums.WorkMode;
 import lombok.Data;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @Data
 @JsonPropertyOrder({
         "id",
-        "title",
         "companyName",
-        "recruiterName",
-        "location",
-        "salary",
-        "jobType",
-        "experienceLevel",
+        "companyLogo",
+        "title",
         "description",
-        "createdAt"
+        "location",
+        "minSalary",
+        "maxSalary",
+        "recruiterName",
+        "recruiterId",
+        "jobType",
+        "workMode",
+        "experienceLevel",
+       "minExperience",
+        "maxExperience",
+        "skills",
+        "vacancies",
+        "applicationDeadline",
+        "createdAt",
+        "updatedAt"
 })
 public class JobResponseDTO {
-
     private Long id;
+    private String companyName;
+    private String companyLogo;
 
     private String title;
-
     private String description;
-
     private String location;
 
-    private Double salary;
+    private Double minSalary;
+    private Double maxSalary;
+    private String recruiterName;
+    private Long recruiterId;
 
     private JobType jobType;
+    private WorkMode workMode;
 
     private ExperienceLevel experienceLevel;
+    private Integer minExperience;
+    private Integer maxExperience;
 
-    // From recruiter
-    private String recruiterName;
-    private String companyName;
+    private List<String> skills;
+
+    private Integer vacancies;
+
+    private LocalDate applicationDeadline;
 
     private LocalDateTime createdAt;
-
+    private LocalDateTime updatedAt;
     private boolean applied;
-    private ApplicationStatus applicationStatus;
+
+
 }

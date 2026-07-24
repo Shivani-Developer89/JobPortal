@@ -4,5 +4,6 @@ public enum ExperienceLevel {
     FRESHER,
     JUNIOR,
     MID_LEVEL,
-    SENIOR
+    SENIOR,
+    LEAD
 }

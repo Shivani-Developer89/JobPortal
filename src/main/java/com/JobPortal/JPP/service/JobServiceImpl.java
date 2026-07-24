@@ -51,13 +51,29 @@ public class JobServiceImpl implements JobService {
 
         Job job = new Job();
 
+        job.setCompanyName(jobRequestDTO.getCompanyName());
+        job.setCompanyLogo(jobRequestDTO.getCompanyLogo());
+
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
-        job.setSalary(jobRequestDTO.getSalary());
+
         job.setJobType(jobRequestDTO.getJobType());
+        job.setWorkMode(jobRequestDTO.getWorkMode());
+
         job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
-        job.setCreatedAt(LocalDateTime.now());
+        job.setMinExperience(jobRequestDTO.getMinExperience());
+        job.setMaxExperience(jobRequestDTO.getMaxExperience());
+
+        job.setMinSalary(jobRequestDTO.getMinSalary());
+        job.setMaxSalary(jobRequestDTO.getMaxSalary());
+
+        job.setSkills(jobRequestDTO.getSkills());
+
+        job.setVacancies(jobRequestDTO.getVacancies());
+
+        job.setApplicationDeadline(jobRequestDTO.getApplicationDeadline());
+
         job.setRecruiter(user);
 
         job = jobRepository.save(job);
@@ -104,12 +120,28 @@ public class JobServiceImpl implements JobService {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
+        job.setCompanyName(jobRequestDTO.getCompanyName());
+        job.setCompanyLogo(jobRequestDTO.getCompanyLogo());
+
         job.setTitle(jobRequestDTO.getTitle());
         job.setDescription(jobRequestDTO.getDescription());
         job.setLocation(jobRequestDTO.getLocation());
-        job.setSalary(jobRequestDTO.getSalary());
+
         job.setJobType(jobRequestDTO.getJobType());
+        job.setWorkMode(jobRequestDTO.getWorkMode());
+
         job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
+        job.setMinExperience(jobRequestDTO.getMinExperience());
+        job.setMaxExperience(jobRequestDTO.getMaxExperience());
+
+        job.setMinSalary(jobRequestDTO.getMinSalary());
+        job.setMaxSalary(jobRequestDTO.getMaxSalary());
+
+        job.setSkills(jobRequestDTO.getSkills());
+
+        job.setVacancies(jobRequestDTO.getVacancies());
+
+        job.setApplicationDeadline(jobRequestDTO.getApplicationDeadline());
 
         job = jobRepository.save(job);
 
@@ -274,26 +306,37 @@ public class JobServiceImpl implements JobService {
         }
 
         dto.setId(job.getId());
+
+        dto.setCompanyName(job.getCompanyName());
+        dto.setCompanyLogo(job.getCompanyLogo());
+
         dto.setTitle(job.getTitle());
         dto.setDescription(job.getDescription());
+
         dto.setLocation(job.getLocation());
-        dto.setSalary(job.getSalary());
+
         dto.setJobType(job.getJobType());
+        dto.setWorkMode(job.getWorkMode());
+
         dto.setExperienceLevel(job.getExperienceLevel());
+        dto.setMinExperience(job.getMinExperience());
+        dto.setMaxExperience(job.getMaxExperience());
+
+        dto.setMinSalary(job.getMinSalary());
+        dto.setMaxSalary(job.getMaxSalary());
+
+        dto.setSkills(job.getSkills());
+
+        dto.setVacancies(job.getVacancies());
+
+        dto.setApplicationDeadline(job.getApplicationDeadline());
+
         dto.setCreatedAt(job.getCreatedAt());
-
-        // Recruiter details
+        dto.setUpdatedAt(job.getUpdatedAt());
         if (job.getRecruiter() != null) {
+            dto.setRecruiterId(job.getRecruiter().getId());
             dto.setRecruiterName(job.getRecruiter().getName());
-        } else {
-            dto.setRecruiterName("Unknown Recruiter");
         }
-        // Uncomment after adding companyName to User
-        // dto.setCompanyName(job.getRecruiter().getCompanyName());
-
-
-
-
 
         return dto;
     }

@@ -5,5 +5,5 @@ public enum JobType {
     PART_TIME,
     CONTRACT,
     INTERNSHIP,
-    REMOTE
+    FREELANCE
 }
