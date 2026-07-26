@@ -47,6 +47,12 @@ public class SecurityConfig {
                                 "/candidate-profile/recruiter/**")
                         .hasRole("RECRUITER")
 
+
+                        // Public job browsing
+                        .requestMatchers(HttpMethod.GET, "/job/all").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/job/*").permitAll()
+
+
                         .anyRequest().authenticated()
                 )
 
