@@ -482,6 +482,14 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setApplicationId(application.getId());
         dto.setCandidateName(application.getCandidate().getName());
         dto.setCandidateEmail(application.getCandidate().getEmail());
+        // Job
+        dto.setJobId(
+                application.getJob().getId()
+        );
+
+        dto.setJobTitle(
+                application.getJob().getTitle()
+        );
         dto.setStatus(application.getStatus());
         dto.setAppliedAt(application.getAppliedAt());
 

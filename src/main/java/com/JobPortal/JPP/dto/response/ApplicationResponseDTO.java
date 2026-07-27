@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 public class ApplicationResponseDTO {
 
         private Long id;
-
         private Long candidateId;
 
         private Long jobId;
