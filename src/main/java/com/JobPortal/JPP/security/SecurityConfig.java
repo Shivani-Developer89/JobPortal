@@ -52,7 +52,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/job/all").permitAll()
                         .requestMatchers(HttpMethod.GET, "/job/*").permitAll()
 
-
                         .anyRequest().authenticated()
                 )
 
