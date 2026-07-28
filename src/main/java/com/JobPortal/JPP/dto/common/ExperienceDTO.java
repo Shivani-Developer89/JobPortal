@@ -1,4 +1,4 @@
-package com.JobPortal.JPP.dto.request;
+package com.JobPortal.JPP.dto.common;
 
 import lombok.Data;
 

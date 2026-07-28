@@ -1,5 +1,7 @@
 package com.JobPortal.JPP.dto.request;
 
+import com.JobPortal.JPP.dto.common.EducationDTO;
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 import lombok.Data;
 
 import java.util.List;

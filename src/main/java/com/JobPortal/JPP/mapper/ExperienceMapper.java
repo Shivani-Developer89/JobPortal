@@ -1,6 +1,6 @@
 package com.JobPortal.JPP.mapper;
 
-import com.JobPortal.JPP.dto.request.ExperienceDTO;
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 import com.JobPortal.JPP.entity.Experience;
 import org.springframework.stereotype.Component;
 

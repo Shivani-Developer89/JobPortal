@@ -1,8 +1,8 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
-import com.JobPortal.JPP.dto.request.EducationDTO;
-import com.JobPortal.JPP.dto.request.ExperienceDTO;
+import com.JobPortal.JPP.dto.common.EducationDTO;
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.entity.CandidateProfile;
 import com.JobPortal.JPP.entity.Education;
@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

@@ -2,6 +2,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.Application;
+import com.JobPortal.JPP.entity.CandidateProfile;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
@@ -11,6 +12,7 @@ import com.JobPortal.JPP.exceptions.AlreadyAppliedException;
 import com.JobPortal.JPP.exceptions.ResumeNotFoundException;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
+import com.JobPortal.JPP.repository.CandidateProfileRepository;
 import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import com.JobPortal.JPP.entity.Experience;
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final CandidateProfileRepository candidateProfileRepository;
 
     @Override
     public ApplicationResponseDTO applyJob(Long id) {
@@ -475,14 +480,26 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
-    private RecruiterApplicationResponseDTO convertToRecruiterDTO(Application application) {
+    private RecruiterApplicationResponseDTO convertToRecruiterDTO(
+            Application application) {
 
-        RecruiterApplicationResponseDTO dto = new RecruiterApplicationResponseDTO();
+        RecruiterApplicationResponseDTO dto =
+                new RecruiterApplicationResponseDTO();
 
         dto.setApplicationId(application.getId());
-        dto.setCandidateName(application.getCandidate().getName());
-        dto.setCandidateEmail(application.getCandidate().getEmail());
-        // Job
+
+        dto.setCandidateId(
+                application.getCandidate().getId()
+        );
+
+        dto.setCandidateName(
+                application.getCandidate().getName()
+        );
+
+        dto.setCandidateEmail(
+                application.getCandidate().getEmail()
+        );
+
         dto.setJobId(
                 application.getJob().getId()
         );
@@ -490,13 +507,49 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setJobTitle(
                 application.getJob().getTitle()
         );
+
         dto.setStatus(application.getStatus());
         dto.setAppliedAt(application.getAppliedAt());
 
-        dto.setResumeUrl("/applications/" + application.getId() + "/resume");
+        dto.setResumeUrl(
+                "/applications/" +
+                        application.getId() +
+                        "/resume"
+        );
+
+        CandidateProfile profile = candidateProfileRepository
+                .findByCandidate(application.getCandidate())
+                .orElse(null);
+
+        if (profile != null) {
+
+            dto.setCandidateLocation(profile.getLocation());
+
+            dto.setCandidateExperience(
+                    profile.getExperience()
+                            .stream()
+                            .map(this::convertExperienceToDTO)
+                            .toList()
+            );
+        }
 
         return dto;
     }
+    private ExperienceDTO convertExperienceToDTO(Experience experience) {
+
+        ExperienceDTO dto = new ExperienceDTO();
+
+        dto.setCompany(experience.getCompany());
+        dto.setJobTitle(experience.getJobTitle());
+        dto.setEmploymentType(experience.getEmploymentType());
+        dto.setLocation(experience.getLocation());
+        dto.setYearsOfExperience(experience.getYearsOfExperience());
+        dto.setResponsibilities(experience.getResponsibilities());
+        dto.setAchievements(experience.getAchievements());
+
+        return dto;
+    }
+
     @Override
     public List<RecruiterApplicationResponseDTO> viewApplicants(Long jobId) {
 

@@ -1,8 +1,8 @@
 package com.JobPortal.JPP.dto.response;
 
 
-import com.JobPortal.JPP.dto.request.EducationDTO;
-import com.JobPortal.JPP.dto.request.ExperienceDTO;
+import com.JobPortal.JPP.dto.common.EducationDTO;
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
