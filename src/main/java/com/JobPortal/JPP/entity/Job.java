@@ -1,6 +1,7 @@
 package com.JobPortal.JPP.entity;
 
 import com.JobPortal.JPP.entity.enums.ExperienceLevel;
+import com.JobPortal.JPP.entity.enums.JobStatus;
 import com.JobPortal.JPP.entity.enums.JobType;
 import com.JobPortal.JPP.entity.enums.WorkMode;
 import jakarta.persistence.*;
@@ -118,4 +119,7 @@ public class Job {
     public void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @Enumerated(EnumType.STRING)
+    private JobStatus status = JobStatus.ACTIVE;
 }

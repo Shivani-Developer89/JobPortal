@@ -18,6 +18,9 @@ public interface JobService {
     List<JobResponseDTO> getSavedJobs();
     String unsaveJob(Long jobId);
     List<JobResponseDTO> getMyJobs();
+    JobResponseDTO closeJob(Long jobId);
+
+    JobResponseDTO reopenJob(Long jobId);
 
 
 

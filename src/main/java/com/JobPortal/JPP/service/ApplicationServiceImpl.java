@@ -6,6 +6,7 @@ import com.JobPortal.JPP.entity.CandidateProfile;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
+import com.JobPortal.JPP.entity.enums.JobStatus;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.AccessDeniedException;
 import com.JobPortal.JPP.exceptions.AlreadyAppliedException;
@@ -42,6 +43,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final EmailService emailService;
     private final CandidateProfileRepository candidateProfileRepository;
 
+
     @Override
     public ApplicationResponseDTO applyJob(Long id) {
         String email = SecurityContextHolder
@@ -52,17 +54,25 @@ public class ApplicationServiceImpl implements ApplicationService {
         User candidate = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserDoesNotExist("User not found"));
 
-        if(candidate.getRole() != Role.CANDIDATE){
+        if (candidate.getRole() != Role.CANDIDATE) {
             throw new RuntimeException("Only candidates can apply for jobs");
         }
-        if(candidate.getResumePath() == null ||
+        if (candidate.getResumePath() == null ||
                 candidate.getResumePath().isEmpty()) {
             throw new ResumeNotFoundException(
                     "Please upload resume before applying"
             );
         }
+
         Job job = jobRepository.findById(id).orElseThrow(() ->
-                    new RuntimeException("Job not found"));
+                new RuntimeException("Job not found"));
+
+        if (job.getStatus() == JobStatus.CLOSED) {
+            throw new IllegalStateException(
+                    "Applications are closed for this job."
+            );
+        }
+
         if (applicationRepository.existsByCandidateAndJob(candidate, job)) {
             throw new AlreadyAppliedException("Already applied");
         }

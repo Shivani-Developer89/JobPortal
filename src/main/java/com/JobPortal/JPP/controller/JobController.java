@@ -87,6 +87,21 @@ public class JobController {
                 jobService.unsaveJob(jobId));
     }
 
+    @PutMapping("/{id}/close")
+    public ResponseEntity<JobResponseDTO> closeJob(
+            @PathVariable Long id) {
 
+        return ResponseEntity.ok(
+                jobService.closeJob(id)
+        );
+    }
+    @PutMapping("/{id}/reopen")
+    public ResponseEntity<JobResponseDTO> reopenJob(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                jobService.reopenJob(id)
+        );
+    }
 
 }

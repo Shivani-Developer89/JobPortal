@@ -31,4 +31,5 @@ public interface ApplicationRepository extends JpaRepository<Application , Long>
             Job job,
             List<ApplicationStatus> statuses
     );
+    boolean existsByJob_Id(Long jobId);
 }

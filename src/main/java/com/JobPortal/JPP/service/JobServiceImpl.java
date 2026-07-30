@@ -6,6 +6,7 @@ import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
+import com.JobPortal.JPP.entity.enums.JobStatus;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
@@ -151,8 +152,11 @@ public class JobServiceImpl implements JobService {
     @Override
     public String removeJob(Long id) {
 
+        System.out.println("REMOVE JOB CALLED: " + id);
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
+
+
 
         jobRepository.delete(job);
 
@@ -337,7 +341,31 @@ public class JobServiceImpl implements JobService {
             dto.setRecruiterId(job.getRecruiter().getId());
             dto.setRecruiterName(job.getRecruiter().getName());
         }
-
+        dto.setStatus(job.getStatus());
         return dto;
+    }
+    @Override
+    public JobResponseDTO closeJob(Long jobId) {
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        job.setStatus(JobStatus.CLOSED);
+
+        Job savedJob = jobRepository.save(job);
+
+        return convertToDTO(savedJob);
+    }
+    @Override
+    public JobResponseDTO reopenJob(Long jobId) {
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        job.setStatus(JobStatus.ACTIVE);
+
+        Job savedJob = jobRepository.save(job);
+
+        return convertToDTO(savedJob);
     }
 }
