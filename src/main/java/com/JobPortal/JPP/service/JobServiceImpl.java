@@ -90,14 +90,13 @@ public class JobServiceImpl implements JobService {
 
         return convertToDTO(job);
     }
-
     @Override
     public Page<JobResponseDTO> getAllJobs(int page, int size, String sort) {
 
         Pageable pageable = PageRequest.of(
                 page,
                 size,
-                Sort.by(sort)
+                Sort.by(sort).descending()
         );
 
         Page<Job> jobs = jobRepository.findAll(pageable);
@@ -114,7 +113,6 @@ public class JobServiceImpl implements JobService {
                 jobs.getTotalElements()
         );
     }
-
     @Override
     public JobResponseDTO updateJob(Long id, JobRequestDTO jobRequestDTO) {
 

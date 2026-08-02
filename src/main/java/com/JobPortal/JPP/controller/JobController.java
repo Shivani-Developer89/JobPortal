@@ -33,7 +33,8 @@ public class JobController {
             @RequestParam(defaultValue = "0")
             int page,
 
-            @RequestParam(defaultValue = "5")
+            @RequestParam(defaultValue = "10" +
+                    "")
             int size,
             @RequestParam(defaultValue = "id")
                     String sort
