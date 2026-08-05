@@ -51,10 +51,13 @@ public class AuthServiceImpl implements  AuthService{
         );
 
         user.setRole(dto.getRole());
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        String token = jwtService.generateToken(user.getEmail());
+
 
         return new AuthResponse(
-                "Dummy Token",
+                token,
+                savedUser.getRole().name(),
                 "Registration Successful"
         );
 
@@ -87,9 +90,8 @@ public class AuthServiceImpl implements  AuthService{
 
         return new AuthResponse(
                 token,
-
+                user.getRole().name(),
                 "Login Successful"
-
         );
         }
 
