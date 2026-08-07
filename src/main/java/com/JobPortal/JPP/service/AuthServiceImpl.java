@@ -58,6 +58,7 @@ public class AuthServiceImpl implements  AuthService{
         return new AuthResponse(
                 token,
                 savedUser.getRole().name(),
+                savedUser.getName(),
                 "Registration Successful"
         );
 
@@ -91,6 +92,7 @@ public class AuthServiceImpl implements  AuthService{
         return new AuthResponse(
                 token,
                 user.getRole().name(),
+                user.getName(),
                 "Login Successful"
         );
         }
