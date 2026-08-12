@@ -4,8 +4,10 @@ import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.service.CandidateProfileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/candidate-profile")
@@ -24,6 +26,19 @@ public class CandidateProfileController {
         return ResponseEntity.ok(
                 candidateProfileService.createOrUpdateProfile(request)
         );
+    }
+    @PostMapping(
+            value = "/profile-image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<CandidateProfileResponseDTO> uploadProfileImage(
+            @RequestParam("image") MultipartFile image
+    ) {
+
+        CandidateProfileResponseDTO response =
+                candidateProfileService.uploadProfileImage(image);
+
+        return ResponseEntity.ok(response);
     }
 
     // Candidate views own profile

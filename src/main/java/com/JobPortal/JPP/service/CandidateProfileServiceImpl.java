@@ -17,6 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +97,7 @@ public class CandidateProfileServiceImpl
 
             profile.getExperience().add(experience);
         }
+        profile.setExperienceLevel(request.getExperienceLevel());
 
         profile = candidateProfileRepository.save(profile);
 
@@ -131,15 +141,21 @@ public class CandidateProfileServiceImpl
                                     .map(experienceMapper::toDTO)
                                     .toList()
                     );
+
                     dto.setResumePath(candidate.getResumePath());
 
                     dto.setSkills(profile.getSkills());
                     dto.setGithub(profile.getGithub());
                     dto.setLinkedin(profile.getLinkedin());
                     dto.setLeetcode(profile.getLeetcode());
+                    dto.setExperienceLevel(profile.getExperienceLevel());
+
+                    // ADD THIS
+                    dto.setProfileImagePath(
+                            profile.getProfileImagePath()
+                    );
 
                 });
-
         return dto;
     }
 
@@ -176,7 +192,99 @@ public class CandidateProfileServiceImpl
 
         return convertToDTO(profile);
     }
+    @Override
+    public CandidateProfileResponseDTO uploadProfileImage(
+            MultipartFile image) {
 
+        try {
+
+            if (image == null || image.isEmpty()) {
+                throw new RuntimeException(
+                        "Profile image is required"
+                );
+            }
+
+            // Get currently logged-in candidate
+            String email = SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getName();
+
+            User candidate = userRepository.findByEmail(email)
+                    .orElseThrow(() ->
+                            new UserDoesNotExist("User not found"));
+
+            if (candidate.getRole() != Role.CANDIDATE) {
+                throw new RuntimeException(
+                        "Only candidates can upload profile image"
+                );
+            }
+
+            CandidateProfile profile =
+                    candidateProfileRepository
+                            .findByCandidate(candidate)
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Candidate profile not found"
+                                    )
+                            );
+
+            // Candidate-specific directory
+            Path uploadDir = Paths.get(
+                    "uploads",
+                    "profile-images",
+                    String.valueOf(candidate.getId())
+            );
+
+            Files.createDirectories(uploadDir);
+
+            // Get file extension
+            String originalName =
+                    image.getOriginalFilename();
+
+            String extension = "";
+
+            if (originalName != null &&
+                    originalName.contains(".")) {
+
+                extension = originalName.substring(
+                        originalName.lastIndexOf(".")
+                );
+            }
+
+            // Unique filename
+            String fileName =
+                    "profile_" +
+                            System.currentTimeMillis() +
+                            extension;
+
+            Path filePath =
+                    uploadDir.resolve(fileName);
+
+            // Save image
+            Files.copy(
+                    image.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            // Save path in candidate profile
+            profile.setProfileImagePath(
+                    filePath.toString()
+            );
+
+            candidateProfileRepository.save(profile);
+
+            return convertToDTO(profile);
+
+        } catch (IOException e) {
+
+            throw new RuntimeException(
+                    "Failed to upload profile image",
+                    e
+            );
+        }
+    }
     private CandidateProfileResponseDTO convertToDTO(
             CandidateProfile profile) {
 
@@ -204,11 +312,15 @@ public class CandidateProfileServiceImpl
                         .map(experienceMapper::toDTO)
                         .toList()
         );
+        dto.setExperienceLevel(profile.getExperienceLevel());
         dto.setGithub(profile.getGithub());
         dto.setLinkedin(profile.getLinkedin());
         dto.setLeetcode(profile.getLeetcode());
 
         dto.setResumePath(candidate.getResumePath());
+        dto.setProfileImagePath(
+                profile.getProfileImagePath()
+        );
         dto.setResumeUploadedAt(candidate.getResumeUploadedAt());
 
         return dto;

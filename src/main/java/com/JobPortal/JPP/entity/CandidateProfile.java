@@ -1,4 +1,5 @@
 package com.JobPortal.JPP.entity;
+import com.JobPortal.JPP.entity.enums.ExperienceLevel;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -35,7 +36,11 @@ public class CandidateProfile {
             orphanRemoval = true
     )
     private List<Experience> experience = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private ExperienceLevel experienceLevel;
     private String resumePath;
+    private String profileImagePath;
+
 
     @Column(columnDefinition = "TEXT")
     private String skills;
