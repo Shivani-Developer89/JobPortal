@@ -28,8 +28,7 @@ public class JwtService {
                 .setIssuedAt(new Date())
                 .setExpiration(
                         new Date(
-                                System.currentTimeMillis()
-                                        + 1000 * 60 * 60
+                                System.currentTimeMillis() + 1000 * 60 * 60
                         )
                 )
                 .signWith(

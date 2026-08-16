@@ -5,25 +5,26 @@ import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
-import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.JobStatus;
 import com.JobPortal.JPP.entity.enums.Role;
+import com.JobPortal.JPP.exceptions.JobAccessDeniedException;
 import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.ApplicationRepository;
 import com.JobPortal.JPP.repository.JobRepository;
 import com.JobPortal.JPP.repository.SavedJobRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,20 +36,16 @@ public class JobServiceImpl implements JobService {
     private final SavedJobRepository savedJobRepository;
 
 
+    // =========================================================
+    // CREATE JOB
+    // =========================================================
+
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        User recruiter = getCurrentUser();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserDoesNotExist("User not found"));
-
-        if (user.getRole() != Role.RECRUITER) {
-            throw new RuntimeException("Only recruiters can create jobs");
-        }
+        requireRecruiter(recruiter);
 
         Job job = new Job();
 
@@ -62,36 +59,72 @@ public class JobServiceImpl implements JobService {
         job.setJobType(jobRequestDTO.getJobType());
         job.setWorkMode(jobRequestDTO.getWorkMode());
 
-        job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
-        job.setMinExperience(jobRequestDTO.getMinExperience());
-        job.setMaxExperience(jobRequestDTO.getMaxExperience());
+        job.setExperienceLevel(
+                jobRequestDTO.getExperienceLevel()
+        );
 
-        job.setMinSalary(jobRequestDTO.getMinSalary());
-        job.setMaxSalary(jobRequestDTO.getMaxSalary());
+        job.setMinExperience(
+                jobRequestDTO.getMinExperience()
+        );
 
-        job.setSkills(jobRequestDTO.getSkills());
+        job.setMaxExperience(
+                jobRequestDTO.getMaxExperience()
+        );
 
-        job.setVacancies(jobRequestDTO.getVacancies());
+        job.setMinSalary(
+                jobRequestDTO.getMinSalary()
+        );
 
-        job.setApplicationDeadline(jobRequestDTO.getApplicationDeadline());
+        job.setMaxSalary(
+                jobRequestDTO.getMaxSalary()
+        );
 
-        job.setRecruiter(user);
+        job.setSkills(
+                jobRequestDTO.getSkills()
+        );
+
+        job.setVacancies(
+                jobRequestDTO.getVacancies()
+        );
+
+        job.setApplicationDeadline(
+                jobRequestDTO.getApplicationDeadline()
+        );
+
+        job.setRecruiter(recruiter);
 
         job = jobRepository.save(job);
 
         return convertToDTO(job);
     }
 
+
+    // =========================================================
+    // GET SINGLE JOB
+    // =========================================================
+
     @Override
     public JobResponseDTO getJobById(Long id) {
 
         Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found")
+                );
 
         return convertToDTO(job);
     }
+
+
+    // =========================================================
+    // GET ACTIVE JOBS
+    // =========================================================
+
     @Override
-    public Page<JobResponseDTO> getAllJobs(int page, int size, String sort) {
+    public Page<JobResponseDTO> getAllJobs(
+            int page,
+            int size,
+            String sort
+    ) {
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -99,12 +132,20 @@ public class JobServiceImpl implements JobService {
                 Sort.by(sort).descending()
         );
 
-        Page<Job> jobs = jobRepository.findAll(pageable);
+        Page<Job> jobs =
+                jobRepository.findByStatus(
+                        JobStatus.ACTIVE,
+                        pageable
+                );
 
-        List<JobResponseDTO> response = new ArrayList<>();
+        List<JobResponseDTO> response =
+                new ArrayList<>();
 
         for (Job job : jobs.getContent()) {
-            response.add(convertToDTO(job));
+
+            response.add(
+                    convertToDTO(job)
+            );
         }
 
         return new PageImpl<>(
@@ -113,48 +154,114 @@ public class JobServiceImpl implements JobService {
                 jobs.getTotalElements()
         );
     }
+
+
+    // =========================================================
+    // UPDATE JOB
+    // =========================================================
+
     @Override
-    public JobResponseDTO updateJob(Long id, JobRequestDTO jobRequestDTO) {
+    public JobResponseDTO updateJob(
+            Long id,
+            JobRequestDTO jobRequestDTO
+    ) {
 
-        Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+        User recruiter = getCurrentUser();
 
-        job.setCompanyName(jobRequestDTO.getCompanyName());
-        job.setCompanyLogo(jobRequestDTO.getCompanyLogo());
+        requireRecruiter(recruiter);
 
-        job.setTitle(jobRequestDTO.getTitle());
-        job.setDescription(jobRequestDTO.getDescription());
-        job.setLocation(jobRequestDTO.getLocation());
+        Job job = getJob(id);
 
-        job.setJobType(jobRequestDTO.getJobType());
-        job.setWorkMode(jobRequestDTO.getWorkMode());
+        verifyJobOwnership(
+                job,
+                recruiter,
+                "update"
+        );
 
-        job.setExperienceLevel(jobRequestDTO.getExperienceLevel());
-        job.setMinExperience(jobRequestDTO.getMinExperience());
-        job.setMaxExperience(jobRequestDTO.getMaxExperience());
+        job.setCompanyName(
+                jobRequestDTO.getCompanyName()
+        );
 
-        job.setMinSalary(jobRequestDTO.getMinSalary());
-        job.setMaxSalary(jobRequestDTO.getMaxSalary());
+        job.setCompanyLogo(
+                jobRequestDTO.getCompanyLogo()
+        );
 
-        job.setSkills(jobRequestDTO.getSkills());
+        job.setTitle(
+                jobRequestDTO.getTitle()
+        );
 
-        job.setVacancies(jobRequestDTO.getVacancies());
+        job.setDescription(
+                jobRequestDTO.getDescription()
+        );
 
-        job.setApplicationDeadline(jobRequestDTO.getApplicationDeadline());
+        job.setLocation(
+                jobRequestDTO.getLocation()
+        );
+
+        job.setJobType(
+                jobRequestDTO.getJobType()
+        );
+
+        job.setWorkMode(
+                jobRequestDTO.getWorkMode()
+        );
+
+        job.setExperienceLevel(
+                jobRequestDTO.getExperienceLevel()
+        );
+
+        job.setMinExperience(
+                jobRequestDTO.getMinExperience()
+        );
+
+        job.setMaxExperience(
+                jobRequestDTO.getMaxExperience()
+        );
+
+        job.setMinSalary(
+                jobRequestDTO.getMinSalary()
+        );
+
+        job.setMaxSalary(
+                jobRequestDTO.getMaxSalary()
+        );
+
+        job.setSkills(
+                jobRequestDTO.getSkills()
+        );
+
+        job.setVacancies(
+                jobRequestDTO.getVacancies()
+        );
+
+        job.setApplicationDeadline(
+                jobRequestDTO.getApplicationDeadline()
+        );
 
         job = jobRepository.save(job);
 
         return convertToDTO(job);
     }
 
+
+    // =========================================================
+    // DELETE JOB
+    // =========================================================
+
     @Override
     public String removeJob(Long id) {
 
-        System.out.println("REMOVE JOB CALLED: " + id);
-        Job job = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
+        User recruiter = getCurrentUser();
 
+        requireRecruiter(recruiter);
 
+        Job job = getJob(id);
+
+        verifyJobOwnership(
+                job,
+                recruiter,
+                "delete"
+        );
 
         jobRepository.delete(job);
 
@@ -163,42 +270,76 @@ public class JobServiceImpl implements JobService {
                 + " has been removed successfully!";
     }
 
+
+    // =========================================================
+    // SEARCH JOBS
+    // =========================================================
+
     @Override
-    public List<JobResponseDTO> searchJobs(String title) {
+    public List<JobResponseDTO> searchJobs(
+            String title
+    ) {
 
-        List<Job> jobs = jobRepository.findByTitleContainingIgnoreCase(title);
+        List<Job> jobs =
+                jobRepository
+                        .findByTitleContainingIgnoreCase(title);
 
-        List<JobResponseDTO> response = new ArrayList<>();
+        List<JobResponseDTO> response =
+                new ArrayList<>();
 
         for (Job job : jobs) {
-            response.add(convertToDTO(job));
+
+            // Don't show closed jobs in search
+            if (job.getStatus() != JobStatus.ACTIVE) {
+                continue;
+            }
+
+            response.add(
+                    convertToDTO(job)
+            );
         }
 
         return response;
     }
 
+
+    // =========================================================
+    // SAVE JOB
+    // =========================================================
+
     @Override
     public String saveJob(Long jobId) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User candidate = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+        User candidate = getCurrentUser();
 
         if (candidate.getRole() != Role.CANDIDATE) {
-            throw new RuntimeException("Only candidates can save jobs");
+
+            throw new JobAccessDeniedException(
+                    "Only candidates can save jobs."
+            );
         }
 
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
+        Job job = getJob(jobId);
 
-        if (savedJobRepository.findByCandidateAndJob(candidate, job).isPresent()) {
-            throw new RuntimeException("Job already saved");
+        if (job.getStatus() != JobStatus.ACTIVE) {
+
+            throw new RuntimeException(
+                    "Closed jobs cannot be saved"
+            );
+        }
+
+        if (
+                savedJobRepository
+                        .findByCandidateAndJob(
+                                candidate,
+                                job
+                        )
+                        .isPresent()
+        ) {
+
+            throw new RuntimeException(
+                    "Job already saved"
+            );
         }
 
         SavedJob savedJob = new SavedJob();
@@ -211,97 +352,212 @@ public class JobServiceImpl implements JobService {
         return "Job saved successfully";
     }
 
+
+    // =========================================================
+    // GET SAVED JOBS
+    // =========================================================
+
     @Override
     public List<JobResponseDTO> getSavedJobs() {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        User candidate = getCurrentUser();
 
-        User candidate = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+        if (candidate.getRole() != Role.CANDIDATE) {
 
-        List<SavedJob> savedJobs = savedJobRepository.findByCandidate(candidate);
+            throw new JobAccessDeniedException(
+                    "Only candidates can view saved jobs."
+            );
+        }
 
-        List<JobResponseDTO> response = new ArrayList<>();
+        List<SavedJob> savedJobs =
+                savedJobRepository
+                        .findByCandidate(candidate);
+
+        List<JobResponseDTO> response =
+                new ArrayList<>();
 
         for (SavedJob savedJob : savedJobs) {
-            response.add(convertToDTO(savedJob.getJob()));
+
+            response.add(
+                    convertToDTO(
+                            savedJob.getJob()
+                    )
+            );
         }
 
         return response;
     }
 
+
+    // =========================================================
+    // UNSAVE JOB
+    // =========================================================
+
     @Override
     public String unsaveJob(Long jobId) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        User candidate = getCurrentUser();
 
-        User candidate = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+        if (candidate.getRole() != Role.CANDIDATE) {
 
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
+            throw new JobAccessDeniedException(
+                    "Only candidates can unsave jobs."
+            );
+        }
 
-        SavedJob savedJob = savedJobRepository
-                .findByCandidateAndJob(candidate, job)
-                .orElseThrow(() ->
-                        new RuntimeException("Saved job not found"));
+        Job job = getJob(jobId);
+
+        SavedJob savedJob =
+                savedJobRepository
+                        .findByCandidateAndJob(
+                                candidate,
+                                job
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Saved job not found"
+                                )
+                        );
 
         savedJobRepository.delete(savedJob);
 
         return "Job removed from saved jobs";
     }
 
+
+    // =========================================================
+    // GET RECRUITER JOBS
+    // =========================================================
+
     @Override
     public List<JobResponseDTO> getMyJobs() {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        User recruiter = getCurrentUser();
 
-        User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+        requireRecruiter(recruiter);
 
-        List<Job> jobs = jobRepository.findByRecruiter(recruiter);
+        List<Job> jobs =
+                jobRepository.findByRecruiter(
+                        recruiter
+                );
 
-        List<JobResponseDTO> response = new ArrayList<>();
+        List<JobResponseDTO> response =
+                new ArrayList<>();
 
         for (Job job : jobs) {
-            response.add(convertToDTO(job));
+
+            response.add(
+                    convertToDTO(job)
+            );
         }
 
         return response;
     }
 
-    private JobResponseDTO convertToDTO(Job job) {
 
-        JobResponseDTO dto = new JobResponseDTO();
+    // =========================================================
+    // CLOSE JOB
+    // =========================================================
+
+    @Override
+    public JobResponseDTO closeJob(
+            Long jobId
+    ) {
+
+        User recruiter = getCurrentUser();
+
+        requireRecruiter(recruiter);
+
+        Job job = getJob(jobId);
+
+        verifyJobOwnership(
+                job,
+                recruiter,
+                "close"
+        );
+
+        job.setStatus(
+                JobStatus.CLOSED
+        );
+
+        Job savedJob =
+                jobRepository.save(job);
+
+        return convertToDTO(savedJob);
+    }
+
+
+    // =========================================================
+    // REOPEN JOB
+    // =========================================================
+
+    @Override
+    public JobResponseDTO reopenJob(
+            Long jobId
+    ) {
+
+        User recruiter = getCurrentUser();
+
+        requireRecruiter(recruiter);
+
+        Job job = getJob(jobId);
+
+        verifyJobOwnership(
+                job,
+                recruiter,
+                "reopen"
+        );
+
+        job.setStatus(
+                JobStatus.ACTIVE
+        );
+
+        Job savedJob =
+                jobRepository.save(job);
+
+        return convertToDTO(savedJob);
+    }
+
+
+    // =========================================================
+    // CONVERT ENTITY → DTO
+    // =========================================================
+
+    private JobResponseDTO convertToDTO(
+            Job job
+    ) {
+
+        JobResponseDTO dto =
+                new JobResponseDTO();
 
         Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
 
-        if (authentication != null &&
-                authentication.isAuthenticated() &&
-                !"anonymousUser".equals(authentication.getName())) {
+        if (
+                authentication != null
+                        && authentication.isAuthenticated()
+                        && !"anonymousUser".equals(
+                        authentication.getName()
+                )
+        ) {
 
-            User candidate = userRepository
-                    .findByEmail(authentication.getName())
-                    .orElse(null);
+            User currentUser =
+                    userRepository
+                            .findByEmail(
+                                    authentication.getName()
+                            )
+                            .orElse(null);
 
-            if (candidate != null) {
+            if (currentUser != null) {
 
-                boolean applied = applicationRepository
-                        .existsByCandidateAndJob(candidate, job);
+                boolean applied =
+                        applicationRepository
+                                .existsByCandidateAndJob(
+                                        currentUser,
+                                        job
+                                );
 
                 dto.setApplied(applied);
             }
@@ -309,61 +565,156 @@ public class JobServiceImpl implements JobService {
 
         dto.setId(job.getId());
 
-        dto.setCompanyName(job.getCompanyName());
-        dto.setCompanyLogo(job.getCompanyLogo());
+        dto.setCompanyName(
+                job.getCompanyName()
+        );
 
-        dto.setTitle(job.getTitle());
-        dto.setDescription(job.getDescription());
+        dto.setCompanyLogo(
+                job.getCompanyLogo()
+        );
 
-        dto.setLocation(job.getLocation());
+        dto.setTitle(
+                job.getTitle()
+        );
 
-        dto.setJobType(job.getJobType());
-        dto.setWorkMode(job.getWorkMode());
+        dto.setDescription(
+                job.getDescription()
+        );
 
-        dto.setExperienceLevel(job.getExperienceLevel());
-        dto.setMinExperience(job.getMinExperience());
-        dto.setMaxExperience(job.getMaxExperience());
+        dto.setLocation(
+                job.getLocation()
+        );
 
-        dto.setMinSalary(job.getMinSalary());
-        dto.setMaxSalary(job.getMaxSalary());
+        dto.setJobType(
+                job.getJobType()
+        );
 
-        dto.setSkills(job.getSkills());
+        dto.setWorkMode(
+                job.getWorkMode()
+        );
 
-        dto.setVacancies(job.getVacancies());
+        dto.setExperienceLevel(
+                job.getExperienceLevel()
+        );
 
-        dto.setApplicationDeadline(job.getApplicationDeadline());
+        dto.setMinExperience(
+                job.getMinExperience()
+        );
 
-        dto.setCreatedAt(job.getCreatedAt());
-        dto.setUpdatedAt(job.getUpdatedAt());
+        dto.setMaxExperience(
+                job.getMaxExperience()
+        );
+
+        dto.setMinSalary(
+                job.getMinSalary()
+        );
+
+        dto.setMaxSalary(
+                job.getMaxSalary()
+        );
+
+        dto.setSkills(
+                job.getSkills()
+        );
+
+        dto.setVacancies(
+                job.getVacancies()
+        );
+
+        dto.setApplicationDeadline(
+                job.getApplicationDeadline()
+        );
+
+        dto.setCreatedAt(
+                job.getCreatedAt()
+        );
+
+        dto.setUpdatedAt(
+                job.getUpdatedAt()
+        );
+
         if (job.getRecruiter() != null) {
-            dto.setRecruiterId(job.getRecruiter().getId());
-            dto.setRecruiterName(job.getRecruiter().getName());
+
+            dto.setRecruiterId(
+                    job.getRecruiter().getId()
+            );
+
+            dto.setRecruiterName(
+                    job.getRecruiter().getName()
+            );
         }
-        dto.setStatus(job.getStatus());
+
+        dto.setStatus(
+                job.getStatus()
+        );
+
         return dto;
     }
-    @Override
-    public JobResponseDTO closeJob(Long jobId) {
 
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        job.setStatus(JobStatus.CLOSED);
+    // =========================================================
+    // HELPER METHODS
+    // =========================================================
 
-        Job savedJob = jobRepository.save(job);
+    private User getCurrentUser() {
 
-        return convertToDTO(savedJob);
+        String email =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
+
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist(
+                                "User not found"
+                        )
+                );
     }
-    @Override
-    public JobResponseDTO reopenJob(Long jobId) {
 
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found"));
 
-        job.setStatus(JobStatus.ACTIVE);
+    private Job getJob(Long id) {
 
-        Job savedJob = jobRepository.save(job);
+        return jobRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Job not found"
+                        )
+                );
+    }
 
-        return convertToDTO(savedJob);
+
+    private void requireRecruiter(User user) {
+
+        if (user.getRole() != Role.RECRUITER) {
+
+            throw new JobAccessDeniedException(
+                    "Only recruiters can perform this action."
+            );
+        }
+    }
+
+
+    private void verifyJobOwnership(
+            Job job,
+            User recruiter,
+            String action
+    ) {
+
+        if (
+                job.getRecruiter() == null
+                        || !job.getRecruiter()
+                        .getId()
+                        .equals(recruiter.getId())
+        ) {
+
+            throw new JobAccessDeniedException(
+                    "You are not allowed to " + action + " this job. "
+                            + "Only the recruiter who created it can "
+                            + action + " it."
+            );
+        }
     }
 }
