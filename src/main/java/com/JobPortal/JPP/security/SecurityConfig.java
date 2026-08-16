@@ -35,41 +35,144 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public authentication APIs
+                        // =========================
+                        // PUBLIC AUTH
+                        // =========================
+
                         .requestMatchers("/auth/**")
                         .permitAll()
 
-                        // Public uploaded files
+
+                        // =========================
+                        // PUBLIC UPLOADS
+                        // =========================
+
                         .requestMatchers("/uploads/**")
                         .permitAll()
 
-                        // Candidate profile creation/update
+
+                        // =========================
+                        // CANDIDATE PROFILE
+                        // =========================
+
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/candidate-profile/**"
                         )
                         .permitAll()
 
-                        // Candidate profile
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/candidate-profile/me"
                         )
                         .hasRole("CANDIDATE")
 
-                        // Recruiter profile access
+
+                        // =========================
+                        // RECRUITER PROFILE
+                        // =========================
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/candidate-profile/recruiter/**"
                         )
                         .hasRole("RECRUITER")
 
-                        // Public job browsing
+
+                        // =========================
+                        // PUBLIC JOB BROWSING
+                        // =========================
+
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/job/all"
                         )
                         .permitAll()
+
+
+                        // =========================
+                        // RECRUITER JOBS
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/job/my"
+                        )
+                        .hasRole("RECRUITER")
+
+
+                        // =========================
+                        // CANDIDATE SAVED JOBS
+                        // IMPORTANT:
+                        // This must come BEFORE /job/*
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/job/saved"
+                        )
+                        .hasRole("CANDIDATE")
+
+
+                        // =========================
+                        // CANDIDATE SAVE JOB
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/job/*/save"
+                        )
+                        .hasRole("CANDIDATE")
+
+
+                        // =========================
+                        // CANDIDATE UNSAVE JOB
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/job/*/unsave"
+                        )
+                        .hasRole("CANDIDATE")
+
+
+                        // =========================
+                        // RECRUITER CREATE JOB
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/job"
+                        )
+                        .hasRole("RECRUITER")
+
+
+                        // =========================
+                        // RECRUITER UPDATE / CLOSE /
+                        // REOPEN JOB
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/job/*"
+                        )
+                        .hasRole("RECRUITER")
+
+
+                        // =========================
+                        // RECRUITER DELETE JOB
+                        // =========================
+
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/job/*"
+                        )
+                        .hasRole("RECRUITER")
+
+
+                        // =========================
+                        // PUBLIC SINGLE JOB / SEARCH
+                        // =========================
 
                         .requestMatchers(
                                 HttpMethod.GET,
@@ -77,7 +180,11 @@ public class SecurityConfig {
                         )
                         .permitAll()
 
-                        // Everything else requires authentication
+
+                        // =========================
+                        // EVERYTHING ELSE
+                        // =========================
+
                         .anyRequest()
                         .authenticated()
                 )
