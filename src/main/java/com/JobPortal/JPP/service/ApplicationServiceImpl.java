@@ -122,6 +122,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setId(application.getId());
         dto.setCandidateId(application.getCandidate().getId());
         dto.setJobId(application.getJob().getId());
+        dto.setJobTitle(application.getJob().getTitle());
+
         dto.setAppliedAt(application.getAppliedAt());
 
         dto.setStatus(application.getStatus());
@@ -296,6 +298,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setId(application.getId());
         dto.setCandidateId(application.getCandidate().getId());
         dto.setJobId(application.getJob().getId());
+        dto.setJobTitle(application.getJob().getTitle());
+
         dto.setAppliedAt(application.getAppliedAt());
         dto.setStatus(application.getStatus());
 
@@ -485,6 +489,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setId(application.getId());
         dto.setCandidateId(application.getCandidate().getId());
         dto.setJobId(application.getJob().getId());
+        dto.setJobTitle(application.getJob().getTitle());
+
         dto.setAppliedAt(application.getAppliedAt());
         dto.setStatus(application.getStatus());
 

@@ -244,24 +244,38 @@ public class JobServiceImpl implements JobService {
     }
 
 
+
     // =========================================================
-    // DELETE JOB
-    // =========================================================
+// DELETE JOB
+// =========================================================
 
     @Override
     public String removeJob(Long id) {
 
         User recruiter = getCurrentUser();
 
+        // Only recruiters can delete jobs
         requireRecruiter(recruiter);
 
         Job job = getJob(id);
 
+        // Only the recruiter who created the job can delete it
         verifyJobOwnership(
                 job,
                 recruiter,
                 "delete"
         );
+
+        // Do not physically delete a job if candidates
+        // have already applied to it.
+        if (applicationRepository.existsByJob_Id(id)) {
+
+            throw new RuntimeException(
+                    "Job cannot be deleted because candidates "
+                            + "have already applied to this job. "
+                            + "Please close the job instead."
+            );
+        }
 
         jobRepository.delete(job);
 
