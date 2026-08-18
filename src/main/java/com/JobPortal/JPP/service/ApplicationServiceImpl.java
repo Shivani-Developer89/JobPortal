@@ -303,7 +303,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         dto.setAppliedAt(application.getAppliedAt());
         dto.setStatus(application.getStatus());
 
-        return dto;
+         return dto;
     }
 
     @Override
