@@ -1,4 +1,13 @@
 package com.JobPortal.JPP.repository;
 
-public class RecruiterProfileRepository {
+import com.JobPortal.JPP.entity.RecruiterProfile;
+import com.JobPortal.JPP.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface RecruiterProfileRepository
+        extends JpaRepository<RecruiterProfile, Long> {
+
+    Optional<RecruiterProfile> findByRecruiter(User recruiter);
 }
