@@ -4,6 +4,8 @@ import com.JobPortal.JPP.dto.request.RecruiterProfileRequestDTO;
 import com.JobPortal.JPP.dto.response.RecruiterProfileResponseDTO;
 import com.JobPortal.JPP.entity.RecruiterProfile;
 import com.JobPortal.JPP.entity.User;
+import com.JobPortal.JPP.entity.enums.Role;
+import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.repository.RecruiterProfileRepository;
 import com.JobPortal.JPP.repository.UserRepository;
 
@@ -13,6 +15,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
 @RequiredArgsConstructor
@@ -79,16 +87,96 @@ public class RecruiterProfileServiceImpl
     public RecruiterProfileResponseDTO uploadProfileImage(
             MultipartFile image) {
 
-        /*
-         * We will connect this to the same image-storage approach
-         * already used by CandidateProfileServiceImpl.
-         *
-         * Do not implement a second file-storage mechanism.
-         */
+        try {
 
-        throw new UnsupportedOperationException(
-                "Profile image upload is not implemented yet."
-        );
+            if (image == null || image.isEmpty()) {
+                throw new RuntimeException(
+                        "Profile image is required"
+                );
+            }
+
+            // Get currently logged-in recruiter
+            String email = SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getName();
+
+            User recruiter = userRepository.findByEmail(email)
+                    .orElseThrow(() ->
+                            new UserDoesNotExist("User not found")
+                    );
+
+            if (recruiter.getRole() != Role.RECRUITER) {
+                throw new RuntimeException(
+                        "Only recruiters can upload profile image"
+                );
+            }
+
+            RecruiterProfile profile =
+                    recruiterProfileRepository
+                            .findByRecruiter(recruiter)
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Recruiter profile not found"
+                                    )
+                            );
+
+            // Recruiter-specific directory
+            Path uploadDir = Paths.get(
+                    "uploads",
+                    "profile-images",
+                    "recruiter",
+                    String.valueOf(recruiter.getId())
+            );
+
+            Files.createDirectories(uploadDir);
+
+            // Get file extension
+            String originalName =
+                    image.getOriginalFilename();
+
+            String extension = "";
+
+            if (originalName != null &&
+                    originalName.contains(".")) {
+
+                extension = originalName.substring(
+                        originalName.lastIndexOf(".")
+                );
+            }
+
+            // Unique filename
+            String fileName =
+                    "profile_" +
+                            System.currentTimeMillis() +
+                            extension;
+
+            Path filePath =
+                    uploadDir.resolve(fileName);
+
+            // Save image
+            Files.copy(
+                    image.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            // Save path in recruiter profile
+            profile.setProfileImagePath(
+                    filePath.toString()
+            );
+
+            recruiterProfileRepository.save(profile);
+
+            return convertToDTO(profile);
+
+        } catch (IOException e) {
+
+            throw new RuntimeException(
+                    "Failed to upload profile image",
+                    e
+            );
+        }
     }
 
     private User getAuthenticatedRecruiter() {
