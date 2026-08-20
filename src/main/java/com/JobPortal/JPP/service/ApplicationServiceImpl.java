@@ -1,8 +1,10 @@
 package com.JobPortal.JPP.service;
 
+import com.JobPortal.JPP.dto.common.ExperienceDTO;
 import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.CandidateProfile;
+import com.JobPortal.JPP.entity.Experience;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
@@ -22,80 +24,94 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import com.JobPortal.JPP.entity.Experience;
-import com.JobPortal.JPP.dto.common.ExperienceDTO;
 
 @Service
 @RequiredArgsConstructor
 public class ApplicationServiceImpl implements ApplicationService {
 
     private final ApplicationRepository applicationRepository;
-
     private final JobRepository jobRepository;
-
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final CandidateProfileRepository candidateProfileRepository;
 
 
+    // =========================================================
+    // APPLY FOR JOB
+    // =========================================================
+
     @Override
     public ApplicationResponseDTO applyJob(Long id) {
+
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
 
-        User candidate = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserDoesNotExist("User not found"));
+        User candidate = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
 
         if (candidate.getRole() != Role.CANDIDATE) {
-            throw new RuntimeException("Only candidates can apply for jobs");
-        }
-        if (candidate.getResumePath() == null ||
-                candidate.getResumePath().isEmpty()) {
-            throw new ResumeNotFoundException(
-                    "Please upload resume before applying"
-            );
+            throw new RuntimeException(
+                    "Only candidates can apply for jobs");
         }
 
-        Job job = jobRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Job not found"));
+        if (candidate.getResumePath() == null ||
+                candidate.getResumePath().isEmpty()) {
+
+            throw new ResumeNotFoundException(
+                    "Please upload resume before applying");
+        }
+
+        Job job = jobRepository
+                .findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
 
         if (job.getStatus() == JobStatus.CLOSED) {
             throw new IllegalStateException(
-                    "Applications are closed for this job."
-            );
+                    "Applications are closed for this job.");
         }
 
-        if (applicationRepository.existsByCandidateAndJob(candidate, job)) {
-            throw new AlreadyAppliedException("Already applied");
+        // Prevent duplicate application
+        if (applicationRepository
+                .existsByCandidateAndJob(candidate, job)) {
+
+            throw new AlreadyAppliedException(
+                    "Already applied");
         }
+
         Application application = new Application();
 
         application.setCandidate(candidate);
         application.setJob(job);
         application.setAppliedAt(LocalDateTime.now());
         application.setStatus(ApplicationStatus.APPLIED);
+
         application = applicationRepository.save(application);
 
 
-        System.out.println("Application saved");
+        // =====================================================
+        // SEND EMAIL TO RECRUITER
+        // =====================================================
 
         User recruiter = job.getRecruiter();
 
-        System.out.println("Recruiter email: " + recruiter.getEmail());
-        // format date only for email
         DateTimeFormatter formatter =
                 DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
         String appliedDate =
                 application.getAppliedAt().format(formatter);
+
         String emailBody =
                 "Hello Recruiter,\n\n" +
                         "A new candidate has applied for your job posting.\n\n" +
@@ -104,33 +120,46 @@ public class ApplicationServiceImpl implements ApplicationService {
                         "Job Title: " + job.getTitle() + "\n" +
                         "Applied On: " + appliedDate + "\n\n" +
                         "You can review the application from your Job Portal dashboard.\n\n" +
-                        "Regards,\n" +
-                        "Job Portal Team";
+                        "Regards,\nJob Portal Team";
 
         emailService.sendEmail(
                 recruiter.getEmail(),
                 "New Job Application - " + job.getTitle(),
                 emailBody
-
         );
 
-        System.out.println("Email method executed");
 
-        ApplicationResponseDTO dto = new ApplicationResponseDTO();
+        // =====================================================
+        // RESPONSE
+        // =====================================================
 
+        ApplicationResponseDTO dto =
+                new ApplicationResponseDTO();
 
         dto.setId(application.getId());
-        dto.setCandidateId(application.getCandidate().getId());
-        dto.setJobId(application.getJob().getId());
-        dto.setJobTitle(application.getJob().getTitle());
 
-        dto.setAppliedAt(application.getAppliedAt());
+        dto.setCandidateId(
+                application.getCandidate().getId());
 
-        dto.setStatus(application.getStatus());
+        dto.setJobId(
+                application.getJob().getId());
 
+        dto.setJobTitle(
+                application.getJob().getTitle());
+
+        dto.setAppliedAt(
+                application.getAppliedAt());
+
+        dto.setStatus(
+                application.getStatus());
 
         return dto;
     }
+
+
+    // =========================================================
+    // CANDIDATE - MY APPLICATIONS
+    // =========================================================
 
     @Override
     public List<ApplicationResponseDTO> getMyApplication() {
@@ -140,10 +169,12 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .getAuthentication()
                 .getName();
 
-        User user = userRepository.findByEmail(email).orElseThrow(() ->
-                new UserDoesNotExist("User not found"));
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
 
-         List<Application> applications =
+        List<Application> applications =
                 applicationRepository.findByCandidate(user);
 
         List<ApplicationResponseDTO> dtoList =
@@ -161,7 +192,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
             dto.setJobId(
                     application.getJob().getId());
-            dto.setJobTitle(application.getJob().getTitle());
+
+            dto.setJobTitle(
+                    application.getJob().getTitle());
 
             dto.setStatus(
                     application.getStatus());
@@ -174,37 +207,49 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dtoList;
     }
+
+
+    // =========================================================
+    // GET APPLICATIONS BY JOB
+    // =========================================================
+
     @Override
-    public List<ApplicationResponseDTO> getApplicationsByJob(Long jobId) {
+    public List<ApplicationResponseDTO> getApplicationsByJob(
+            Long jobId) {
+
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
-        User user = userRepository.findByEmail(email)
+
+        User user = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
                         new UserDoesNotExist("User not found"));
-        Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found"));
-        System.out.println("Logged User = " + user.getId());
-        System.out.println("Job Owner = " + job.getRecruiter().getId());
 
-        if(user.getRole() != Role.RECRUITER){
+        if (user.getRole() != Role.RECRUITER) {
             throw new RuntimeException(
                     "Only recruiters can view applications");
         }
 
+        Job job = jobRepository
+                .findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException("Job not found"));
 
+        if (!job.getRecruiter()
+                .getId()
+                .equals(user.getId())) {
 
-        if(!job.getRecruiter().getId().equals(user.getId())){
             throw new AccessDeniedException(
                     "You can only view applications for your own jobs");
         }
 
-
-
         List<Application> applications =
                 applicationRepository.findByJob(job);
 
-        List<ApplicationResponseDTO> response = new ArrayList<>();
+        List<ApplicationResponseDTO> response =
+                new ArrayList<>();
 
         for (Application application : applications) {
 
@@ -212,13 +257,19 @@ public class ApplicationServiceImpl implements ApplicationService {
                     new ApplicationResponseDTO();
 
             dto.setId(application.getId());
+
             dto.setCandidateId(
                     application.getCandidate().getId());
+
             dto.setJobId(
                     application.getJob().getId());
-            dto.setJobTitle(application.getJob().getTitle());
+
+            dto.setJobTitle(
+                    application.getJob().getTitle());
+
             dto.setStatus(
                     application.getStatus());
+
             dto.setAppliedAt(
                     application.getAppliedAt());
 
@@ -227,22 +278,70 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return response;
     }
-    @Override
-    public ApplicationResponseDTO updateApplicationStatus(Long applicationId,
-                                               ApplicationStatus status) {
 
-        Application application = applicationRepository
-                .findById(applicationId)
+
+    // =========================================================
+    // UPDATE APPLICATION STATUS
+    // =========================================================
+
+    @Override
+    public ApplicationResponseDTO updateApplicationStatus(
+            Long applicationId,
+            ApplicationStatus status) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("Application not found"));
+                        new UserDoesNotExist("User not found"));
+
+        // Only recruiter can change status
+        if (recruiter.getRole() != Role.RECRUITER) {
+            throw new AccessDeniedException(
+                    "Only recruiters can update application status");
+        }
+
+        Application application =
+                applicationRepository
+                        .findById(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Application not found"));
+
+        // IMPORTANT:
+        // Recruiter can update only applications
+        // belonging to their own job.
+        if (!application.getJob()
+                .getRecruiter()
+                .getId()
+                .equals(recruiter.getId())) {
+
+            throw new AccessDeniedException(
+                    "You can only update applications for your own jobs");
+        }
+
+        if (status == null) {
+            throw new IllegalArgumentException(
+                    "Application status cannot be null");
+        }
 
         application.setStatus(status);
 
         application = applicationRepository.save(application);
 
 
+        // =====================================================
+        // SEND STATUS EMAIL TO CANDIDATE
+        // =====================================================
+
         User candidate = application.getCandidate();
-        String jobTitle = application.getJob().getTitle();
+
+        String jobTitle =
+                application.getJob().getTitle();
 
         String subject;
         String emailBody;
@@ -250,98 +349,217 @@ public class ApplicationServiceImpl implements ApplicationService {
         switch (status) {
 
             case SHORTLISTED:
-                subject = "Application Shortlisted - " + jobTitle;
+
+                subject =
+                        "Application Shortlisted - " + jobTitle;
+
                 emailBody =
                         "Hello " + candidate.getName() + ",\n\n" +
-                                "Good news! Your application for " + jobTitle +
+                                "Good news! Your application for " +
+                                jobTitle +
                                 " has been shortlisted.\n\n" +
-                                "The recruiter will contact you regarding the next steps.\n\n" +
+                                "The recruiter will contact you regarding " +
+                                "the next steps.\n\n" +
                                 "Regards,\nJob Portal Team";
+
                 break;
 
+
             case HIRED:
-                subject = "Congratulations! You've Been Selected";
+
+                subject =
+                        "Congratulations! You've Been Selected";
+
                 emailBody =
                         "Hello " + candidate.getName() + ",\n\n" +
                                 "Congratulations!\n\n" +
-                                "We are pleased to inform you that you have been selected for the position of "
-                                + jobTitle + ".\n\n" +
+                                "We are pleased to inform you that you have " +
+                                "been selected for the position of " +
+                                jobTitle + ".\n\n" +
                                 "We wish you success in your new role.\n\n" +
                                 "Regards,\nJob Portal Team";
+
                 break;
+
 
             case REJECTED:
-                subject = "Application Update - " + jobTitle;
+
+                subject =
+                        "Application Update - " + jobTitle;
+
                 emailBody =
                         "Hello " + candidate.getName() + ",\n\n" +
-                                "Thank you for your interest in " + jobTitle + ".\n\n" +
-                                "After careful consideration, we have decided to move forward with other candidates.\n\n" +
+                                "Thank you for your interest in " +
+                                jobTitle + ".\n\n" +
+                                "After careful consideration, we have decided " +
+                                "to move forward with other candidates.\n\n" +
                                 "We wish you success in your future opportunities.\n\n" +
                                 "Regards,\nJob Portal Team";
+
                 break;
 
+
             default:
-                subject = "Application Status Updated";
+
+                subject =
+                        "Application Status Updated";
+
                 emailBody =
                         "Hello " + candidate.getName() + ",\n\n" +
-                                "Your application status has been updated to: "
-                                + status + ".\n\n" +
+                                "Your application status has been updated to: " +
+                                status + ".\n\n" +
                                 "Regards,\nJob Portal Team";
         }
+
         emailService.sendEmail(
                 candidate.getEmail(),
                 subject,
                 emailBody
         );
-        ApplicationResponseDTO dto = new ApplicationResponseDTO();
+
+
+        // =====================================================
+        // RESPONSE
+        // =====================================================
+
+        ApplicationResponseDTO dto =
+                new ApplicationResponseDTO();
 
         dto.setId(application.getId());
-        dto.setCandidateId(application.getCandidate().getId());
-        dto.setJobId(application.getJob().getId());
-        dto.setJobTitle(application.getJob().getTitle());
 
-        dto.setAppliedAt(application.getAppliedAt());
-        dto.setStatus(application.getStatus());
+        dto.setCandidateId(
+                application.getCandidate().getId());
 
-         return dto;
+        dto.setJobId(
+                application.getJob().getId());
+
+        dto.setJobTitle(
+                application.getJob().getTitle());
+
+        dto.setAppliedAt(
+                application.getAppliedAt());
+
+        dto.setStatus(
+                application.getStatus());
+
+        return dto;
     }
+
+
+    // =========================================================
+    // DOWNLOAD / VIEW CANDIDATE RESUME
+    // =========================================================
 
     @Override
     public Resource downloadCandidateResume(Long applicationId) {
-        Application application = applicationRepository.findById(applicationId).orElseThrow(() -> new RuntimeException("Application not found"));
 
-        String email = SecurityContextHolder
+        Application application =
+                applicationRepository
+                        .findById(applicationId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Application not found"));
+
+        String email =
+                SecurityContextHolder
                         .getContext()
-                .getAuthentication()
-                .getName();
-        User recruiter = userRepository.findByEmail(email).orElseThrow(() ->new UserDoesNotExist());
+                        .getAuthentication()
+                        .getName();
 
-        if(!application.getJob()
+        User recruiter =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new UserDoesNotExist(
+                                        "User not found"));
+
+        // Check recruiter owns this job
+        if (!application.getJob()
                 .getRecruiter()
                 .getId()
-                .equals(recruiter.getId()) ){
-            throw new AccessDeniedException("You can download resumes f your own job");
+                .equals(recruiter.getId())) {
 
+            throw new AccessDeniedException(
+                    "You can only view resumes for your own jobs");
         }
+
         User candidate = application.getCandidate();
+
         String resumePath = candidate.getResumePath();
-        if(resumePath == null || resumePath.isEmpty()){
-            throw new RuntimeException("Candidate has not uploaded a resume");
+
+        System.out.println("=================================");
+        System.out.println("Application ID = " + applicationId);
+        System.out.println("Candidate = " + candidate.getName());
+        System.out.println("Resume Path = " + resumePath);
+        System.out.println("=================================");
+
+        if (resumePath == null ||
+                resumePath.trim().isEmpty()) {
+
+            throw new ResumeNotFoundException(
+                    "Candidate has not uploaded a resume");
         }
+
         try {
+
             Path path = Paths.get(resumePath);
-            Resource resource = new UrlResource(path.toUri());
-            if (!resource.exists()) {
-                throw new RuntimeException("Resume file not found");
+
+            System.out.println(
+                    "Absolute Path = " +
+                            path.toAbsolutePath());
+
+            System.out.println(
+                    "File Exists = " +
+                            Files.exists(path));
+
+            System.out.println(
+                    "File Readable = " +
+                            Files.isReadable(path));
+
+            if (!Files.exists(path)) {
+
+                throw new ResumeNotFoundException(
+                        "Resume file not found at: " +
+                                path.toAbsolutePath());
+            }
+
+            if (!Files.isReadable(path)) {
+
+                throw new ResumeNotFoundException(
+                        "Resume file is not readable");
+            }
+
+            Resource resource =
+                    new UrlResource(path.toUri());
+
+            if (!resource.exists() ||
+                    !resource.isReadable()) {
+
+                throw new ResumeNotFoundException(
+                        "Resume resource cannot be read");
             }
 
             return resource;
 
-        } catch (Exception e) {
-            throw new RuntimeException("Resume not found");
-        }
+        } catch (ResumeNotFoundException e) {
 
+            throw e;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            throw new RuntimeException(
+                    "Unable to read resume file",
+                    e);
+        }
     }
+
+
+    // =========================================================
+    // CANDIDATE DASHBOARD
+    // =========================================================
+
     @Override
     public CandidateDashboardResponseDTO
     getCandidateDashboard() {
@@ -384,8 +602,15 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
+
+
+    // =========================================================
+    // RECRUITER DASHBOARD
+    // =========================================================
+
     @Override
-    public RecruiterDashboardResponseDTO getRecruiterDashboard() {
+    public RecruiterDashboardResponseDTO
+    getRecruiterDashboard() {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -395,10 +620,12 @@ public class ApplicationServiceImpl implements ApplicationService {
         User recruiter = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+                        new UserDoesNotExist(
+                                "User not found"));
 
-        if(recruiter.getRole() != Role.RECRUITER){
-            throw new RuntimeException(
+        if (recruiter.getRole() != Role.RECRUITER) {
+
+            throw new AccessDeniedException(
                     "Only recruiters can access dashboard");
         }
 
@@ -433,176 +660,192 @@ public class ApplicationServiceImpl implements ApplicationService {
         return dto;
     }
 
+
+    // =========================================================
+    // WITHDRAW APPLICATION
+    // =========================================================
+
     @Override
-    public ApplicationResponseDTO withdrawApplication(Long applicationId) {
+    public ApplicationResponseDTO withdrawApplication(
+            Long applicationId) {
 
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
 
-        User candidate = userRepository.findByEmail(email)
+        User candidate = userRepository
+                .findByEmail(email)
                 .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+                        new UserDoesNotExist(
+                                "User not found"));
 
         Application application =
-                applicationRepository.findById(applicationId)
+                applicationRepository
+                        .findById(applicationId)
                         .orElseThrow(() ->
-                                new RuntimeException("Application not found"));
+                                new RuntimeException(
+                                        "Application not found"));
 
-        if(!application.getCandidate().getId()
+        // Candidate can withdraw only their own application
+        if (!application.getCandidate()
+                .getId()
                 .equals(candidate.getId())) {
-            throw new RuntimeException(
+
+            throw new AccessDeniedException(
                     "You can only withdraw your own application");
         }
-        if (application.getStatus() != ApplicationStatus.APPLIED) {
+
+        // Only APPLIED applications can be withdrawn
+        if (application.getStatus()
+                != ApplicationStatus.APPLIED) {
+
             throw new RuntimeException(
                     "Only applied applications can be withdrawn");
         }
-        if (application.getStatus() == ApplicationStatus.SHORTLISTED) {
-            throw new RuntimeException(
-                    "Cannot withdraw a shortlisted application");
-        }
 
-        if(application.getStatus() == ApplicationStatus.HIRED) {
-            throw new RuntimeException(
-                    "Cannot withdraw a hired application");
-        }
+        application.setStatus(
+                ApplicationStatus.WITHDRAWN);
 
-        if(application.getStatus() == ApplicationStatus.REJECTED) {
-            throw new RuntimeException(
-                    "Cannot withdraw a rejected application");
-        }
+        application =
+                applicationRepository.save(application);
 
-        if(application.getStatus() == ApplicationStatus.WITHDRAWN) {
-            throw new RuntimeException(
-                    "Application already withdrawn");
-        }
-
-        application.setStatus(ApplicationStatus.WITHDRAWN);
-
-        application = applicationRepository.save(application);
 
         ApplicationResponseDTO dto =
                 new ApplicationResponseDTO();
 
         dto.setId(application.getId());
-        dto.setCandidateId(application.getCandidate().getId());
-        dto.setJobId(application.getJob().getId());
-        dto.setJobTitle(application.getJob().getTitle());
 
-        dto.setAppliedAt(application.getAppliedAt());
-        dto.setStatus(application.getStatus());
+        dto.setCandidateId(
+                application.getCandidate().getId());
+
+        dto.setJobId(
+                application.getJob().getId());
+
+        dto.setJobTitle(
+                application.getJob().getTitle());
+
+        dto.setAppliedAt(
+                application.getAppliedAt());
+
+        dto.setStatus(
+                application.getStatus());
 
         return dto;
     }
-    private RecruiterApplicationResponseDTO convertToRecruiterDTO(
+
+
+    // =========================================================
+    // CONVERT APPLICATION -> RECRUITER DTO
+    // =========================================================
+
+    private RecruiterApplicationResponseDTO
+    convertToRecruiterDTO(
             Application application) {
 
         RecruiterApplicationResponseDTO dto =
                 new RecruiterApplicationResponseDTO();
 
-        dto.setApplicationId(application.getId());
+        dto.setApplicationId(
+                application.getId());
 
         dto.setCandidateId(
-                application.getCandidate().getId()
-        );
+                application.getCandidate().getId());
 
         dto.setCandidateName(
-                application.getCandidate().getName()
-        );
+                application.getCandidate().getName());
 
         dto.setCandidateEmail(
-                application.getCandidate().getEmail()
-        );
+                application.getCandidate().getEmail());
 
         dto.setJobId(
-                application.getJob().getId()
-        );
+                application.getJob().getId());
 
         dto.setJobTitle(
-                application.getJob().getTitle()
-        );
+                application.getJob().getTitle());
 
-        dto.setStatus(application.getStatus());
-        dto.setAppliedAt(application.getAppliedAt());
+        dto.setStatus(
+                application.getStatus());
+
+        dto.setAppliedAt(
+                application.getAppliedAt());
 
         dto.setResumeUrl(
                 "/applications/" +
                         application.getId() +
-                        "/resume"
-        );
+                        "/resume");
 
-        CandidateProfile profile = candidateProfileRepository
-                .findByCandidate(application.getCandidate())
-                .orElse(null);
+
+        // Candidate profile
+        CandidateProfile profile =
+                candidateProfileRepository
+                        .findByCandidate(
+                                application.getCandidate())
+                        .orElse(null);
 
         if (profile != null) {
 
-            dto.setCandidateLocation(profile.getLocation());
+            dto.setCandidateLocation(
+                    profile.getLocation());
 
-            dto.setCandidateExperience(
-                    profile.getExperience()
-                            .stream()
-                            .map(this::convertExperienceToDTO)
-                            .toList()
-            );
+            if (profile.getExperience() != null) {
+
+                dto.setCandidateExperience(
+                        profile.getExperience()
+                                .stream()
+                                .map(
+                                        this::convertExperienceToDTO)
+                                .toList()
+                );
+            }
         }
 
         return dto;
     }
-    private ExperienceDTO convertExperienceToDTO(Experience experience) {
 
-        ExperienceDTO dto = new ExperienceDTO();
 
-        dto.setCompany(experience.getCompany());
-        dto.setJobTitle(experience.getJobTitle());
-        dto.setEmploymentType(experience.getEmploymentType());
-        dto.setLocation(experience.getLocation());
-        dto.setYearsOfExperience(experience.getYearsOfExperience());
-        dto.setResponsibilities(experience.getResponsibilities());
-        dto.setAchievements(experience.getAchievements());
+    // =========================================================
+    // EXPERIENCE -> DTO
+    // =========================================================
+
+    private ExperienceDTO convertExperienceToDTO(
+            Experience experience) {
+
+        ExperienceDTO dto =
+                new ExperienceDTO();
+
+        dto.setCompany(
+                experience.getCompany());
+
+        dto.setJobTitle(
+                experience.getJobTitle());
+
+        dto.setEmploymentType(
+                experience.getEmploymentType());
+
+        dto.setLocation(
+                experience.getLocation());
+
+        dto.setYearsOfExperience(
+                experience.getYearsOfExperience());
+
+        dto.setResponsibilities(
+                experience.getResponsibilities());
+
+        dto.setAchievements(
+                experience.getAchievements());
 
         return dto;
     }
 
-    @Override
-    public List<RecruiterApplicationResponseDTO> viewApplicants(Long jobId) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User recruiter = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
-
-        if (recruiter.getRole() != Role.RECRUITER) {
-            throw new RuntimeException("Only recruiters can view applicants");
-        }
-
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow(() ->
-                        new RuntimeException("Job not found"));
-
-        if (!job.getRecruiter().getId().equals(recruiter.getId())) {
-            throw new RuntimeException(
-                    "You can only view applicants for your own jobs");
-        }
-
-        List<Application> applications =
-                applicationRepository.findByJob(job);
-
-        return applications.stream()
-                .map(this::convertToRecruiterDTO)
-                .toList();
-    }
-
-
+    // =========================================================
+    // RECRUITER - VIEW APPLICANTS FOR JOB
+    // =========================================================
 
     @Override
-    public List<RecruiterApplicationResponseDTO> getRecentApplications() {
+    public List<RecruiterApplicationResponseDTO>
+    viewApplicants(Long jobId) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -612,18 +855,73 @@ public class ApplicationServiceImpl implements ApplicationService {
         User recruiter = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
+                        new UserDoesNotExist(
+                                "User not found"));
+
+        if (recruiter.getRole() != Role.RECRUITER) {
+
+            throw new AccessDeniedException(
+                    "Only recruiters can view applicants");
+        }
+
+        Job job = jobRepository
+                .findById(jobId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Job not found"));
+
+        // Important security check
+        if (!job.getRecruiter()
+                .getId()
+                .equals(recruiter.getId())) {
+
+            throw new AccessDeniedException(
+                    "You can only view applicants for your own jobs");
+        }
 
         List<Application> applications =
-                applicationRepository
-                        .findTop10ByJobRecruiterOrderByAppliedAtDesc(recruiter);
+                applicationRepository.findByJob(job);
 
-        return applications.stream()
+        return applications
+                .stream()
                 .map(this::convertToRecruiterDTO)
                 .toList();
     }
 
 
+    // =========================================================
+    // RECENT APPLICATIONS
+    // =========================================================
 
+    @Override
+    public List<RecruiterApplicationResponseDTO>
+    getRecentApplications() {
 
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User recruiter = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist(
+                                "User not found"));
+
+        if (recruiter.getRole() != Role.RECRUITER) {
+
+            throw new AccessDeniedException(
+                    "Only recruiters can access recent applications");
+        }
+
+        List<Application> applications =
+                applicationRepository
+                        .findTop10ByJobRecruiterOrderByAppliedAtDesc(
+                                recruiter);
+
+        return applications
+                .stream()
+                .map(this::convertToRecruiterDTO)
+                .toList();
+    }
 }

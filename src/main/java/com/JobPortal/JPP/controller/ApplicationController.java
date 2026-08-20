@@ -6,6 +6,7 @@ import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,21 +53,24 @@ public class ApplicationController {
                 request.getStatus());
     }
     @GetMapping("/{applicationId}/resume")
-    public ResponseEntity<Resource>
-    downloadCandidateResume(
+    public ResponseEntity<Resource> downloadCandidateResume(
             @PathVariable Long applicationId) {
 
         Resource resource =
                 applicationService
-                        .downloadCandidateResume(
-                                applicationId);
+                        .downloadCandidateResume(applicationId);
 
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"resume.pdf\"")
+                        "inline; filename=\"resume.pdf\"")
+                .header(
+                        HttpHeaders.CONTENT_TYPE,
+                        "application/pdf")
                 .body(resource);
     }
+
+
     @GetMapping("/candidateDashboard")
     public ResponseEntity<CandidateDashboardResponseDTO>
     getCandidateDashboard() {
