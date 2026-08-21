@@ -77,6 +77,15 @@ public class SecurityConfig {
                                 "/candidate-profile/recruiter/**"
                         )
                         .hasRole("RECRUITER")
+                                // =========================
+// RECRUITER VIEW CANDIDATE PROFILE IMAGE
+// =========================
+
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/candidate-profile/candidate/*/profile-image"
+                                )
+                                .hasRole("RECRUITER")
 
 
                         // =========================

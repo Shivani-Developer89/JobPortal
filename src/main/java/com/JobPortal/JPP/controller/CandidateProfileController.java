@@ -4,6 +4,8 @@ import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
 import com.JobPortal.JPP.service.CandidateProfileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,5 +60,19 @@ public class CandidateProfileController {
         return ResponseEntity.ok(
                 candidateProfileService.getCandidateProfile(candidateId)
         );
+    }
+    @GetMapping("/candidate/{candidateId}/profile-image")
+    public ResponseEntity<Resource> getProfileImage(
+            @PathVariable Long candidateId) {
+
+        Resource resource =
+                candidateProfileService.getProfileImage(candidateId);
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "inline"
+                )
+                .body(resource);
     }
 }

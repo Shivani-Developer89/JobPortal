@@ -18,6 +18,7 @@ public class RecruiterApplicationResponseDTO {
     private String candidateEmail;
     private String candidateLocation;
     private List<ExperienceDTO> candidateExperience;
+    private String profileImagePath;
 
 
     private ApplicationStatus status;

@@ -738,71 +738,104 @@ public class ApplicationServiceImpl implements ApplicationService {
     // =========================================================
     // CONVERT APPLICATION -> RECRUITER DTO
     // =========================================================
-
-    private RecruiterApplicationResponseDTO
-    convertToRecruiterDTO(
+    private RecruiterApplicationResponseDTO convertToRecruiterDTO(
             Application application) {
 
         RecruiterApplicationResponseDTO dto =
                 new RecruiterApplicationResponseDTO();
 
-        dto.setApplicationId(
-                application.getId());
+        User candidate = application.getCandidate();
 
-        dto.setCandidateId(
-                application.getCandidate().getId());
+        // Application
+        dto.setApplicationId(application.getId());
+
+        // Candidate
+        dto.setCandidateId(candidate.getId());
 
         dto.setCandidateName(
-                application.getCandidate().getName());
+                candidate.getName()
+        );
 
         dto.setCandidateEmail(
-                application.getCandidate().getEmail());
+                candidate.getEmail()
+        );
 
+        // Job
         dto.setJobId(
-                application.getJob().getId());
+                application.getJob().getId()
+        );
 
         dto.setJobTitle(
-                application.getJob().getTitle());
+                application.getJob().getTitle()
+        );
 
+        // Application status
         dto.setStatus(
-                application.getStatus());
+                application.getStatus()
+        );
 
         dto.setAppliedAt(
-                application.getAppliedAt());
+                application.getAppliedAt()
+        );
 
+        // Resume endpoint
         dto.setResumeUrl(
                 "/applications/" +
                         application.getId() +
-                        "/resume");
-
+                        "/resume"
+        );
 
         // Candidate profile
         CandidateProfile profile =
                 candidateProfileRepository
-                        .findByCandidate(
-                                application.getCandidate())
+                        .findByCandidate(candidate)
                         .orElse(null);
 
         if (profile != null) {
 
+            // Location
             dto.setCandidateLocation(
-                    profile.getLocation());
+                    profile.getLocation()
+            );
 
+            // Profile image
+
+            dto.setProfileImagePath(
+                    "/candidate-profile/candidate/"
+                            + candidate.getId()
+                            + "/profile-image"
+            );
+
+            // Experience
             if (profile.getExperience() != null) {
 
                 dto.setCandidateExperience(
                         profile.getExperience()
                                 .stream()
-                                .map(
-                                        this::convertExperienceToDTO)
+                                .map(this::convertExperienceToDTO)
                                 .toList()
                 );
+
+            } else {
+
+                dto.setCandidateExperience(
+                        List.of()
+                );
             }
+
+        } else {
+
+            dto.setCandidateLocation(null);
+
+            dto.setProfileImagePath(null);
+
+            dto.setCandidateExperience(
+                    List.of()
+            );
         }
 
         return dto;
     }
-
 
     // =========================================================
     // EXPERIENCE -> DTO

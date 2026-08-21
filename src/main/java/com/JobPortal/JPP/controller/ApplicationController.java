@@ -2,13 +2,12 @@ package com.JobPortal.JPP.controller;
 
 
 import com.JobPortal.JPP.dto.response.*;
-import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.service.ApplicationService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -105,7 +104,6 @@ public class ApplicationController {
                 applicationService.getRecentApplications()
         );
     }
-
 
 
 }

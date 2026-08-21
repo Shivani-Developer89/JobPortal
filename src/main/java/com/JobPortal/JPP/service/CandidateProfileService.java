@@ -3,6 +3,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.CandidateProfileRequestDTO;
 import com.JobPortal.JPP.dto.response.CandidateProfileResponseDTO;
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface CandidateProfileService {
@@ -14,5 +15,6 @@ public interface CandidateProfileService {
     CandidateProfileResponseDTO getMyProfile();
 
     CandidateProfileResponseDTO getCandidateProfile(Long candidateId);
+    Resource getProfileImage(Long candidateId);
 
 }

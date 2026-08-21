@@ -13,6 +13,8 @@ import com.JobPortal.JPP.exceptions.UserDoesNotExist;
 import com.JobPortal.JPP.mapper.EducationMapper;
 import com.JobPortal.JPP.mapper.ExperienceMapper;
 import com.JobPortal.JPP.repository.*;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -324,5 +326,47 @@ public class CandidateProfileServiceImpl
         dto.setResumeUploadedAt(candidate.getResumeUploadedAt());
 
         return dto;
+    }
+    @Override
+    public Resource getProfileImage(Long candidateId) {
+
+        CandidateProfile profile =
+                candidateProfileRepository
+                        .findByCandidate(
+                                userRepository.findById(candidateId)
+                                        .orElseThrow(() ->
+                                                new RuntimeException(
+                                                        "Candidate not found"))
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Candidate profile not found"));
+
+        String imagePath = profile.getProfileImagePath();
+
+        if (imagePath == null || imagePath.isBlank()) {
+            throw new RuntimeException(
+                    "Profile image not found");
+        }
+
+        try {
+
+            Path path = Paths.get(imagePath);
+
+            Resource resource =
+                    new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RuntimeException(
+                        "Profile image file not found");
+            }
+
+            return resource;
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Unable to read profile image",
+                    e);
+        }
     }
 }
