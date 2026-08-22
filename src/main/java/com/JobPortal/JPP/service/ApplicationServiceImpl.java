@@ -799,11 +799,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             );
 
             // Profile image
-
             dto.setProfileImagePath(
-                    "/candidate-profile/candidate/"
-                            + candidate.getId()
-                            + "/profile-image"
+                    profile.getProfileImagePath()
+            );
+
+            // Skills
+            dto.setCandidateSkills(
+                    profile.getSkills()
             );
 
             // Experience
@@ -822,7 +824,6 @@ public class ApplicationServiceImpl implements ApplicationService {
                         List.of()
                 );
             }
-
         } else {
 
             dto.setCandidateLocation(null);
