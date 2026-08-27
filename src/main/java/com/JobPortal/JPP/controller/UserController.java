@@ -1,7 +1,9 @@
 package com.JobPortal.JPP.controller;
 
 
+import com.JobPortal.JPP.dto.request.ChangePasswordDTO;
 import com.JobPortal.JPP.dto.request.RegisterInputDTO;
+import com.JobPortal.JPP.dto.request.UpdateProfileDTO;
 import com.JobPortal.JPP.dto.response.RegisterOutputDTO;
 import com.JobPortal.JPP.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,5 +65,28 @@ public class UserController {
                         HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + filename + "\"")
                 .body(resource);
+    }
+    @GetMapping("/me")
+    public ResponseEntity<RegisterOutputDTO> getMyProfile() {
+
+        return ResponseEntity.ok(
+                userService.getMyProfile()
+        );
+    }
+    @PutMapping("/me")
+    public ResponseEntity<RegisterOutputDTO> updateMyProfile(
+            @RequestBody UpdateProfileDTO request) {
+
+        return ResponseEntity.ok(
+                userService.updateMyProfile(request)
+        );
+    }
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody ChangePasswordDTO request) {
+
+        return ResponseEntity.ok(
+                userService.changeMyPassword(request)
+        );
     }
 }

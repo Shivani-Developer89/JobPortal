@@ -22,6 +22,8 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.JobPortal.JPP.dto.request.ChangePasswordDTO;
+import com.JobPortal.JPP.dto.request.UpdateProfileDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -196,5 +198,119 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace(); // important for debugging
             throw new RuntimeException("Resume not found");
         }
+    }
+    @Override
+    public RegisterOutputDTO getMyProfile() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        RegisterOutputDTO dto = new RegisterOutputDTO();
+
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+
+        return dto;
+    }
+    @Override
+    public RegisterOutputDTO updateMyProfile(
+            UpdateProfileDTO request) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if (request.getName() == null ||
+                request.getName().trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Name cannot be empty"
+            );
+        }
+
+        user.setName(request.getName().trim());
+
+        user = userRepository.save(user);
+
+        RegisterOutputDTO dto = new RegisterOutputDTO();
+
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+
+        return dto;
+    }
+    @Override
+    public String changeMyPassword(
+            ChangePasswordDTO request) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if (request.getCurrentPassword() == null ||
+                request.getCurrentPassword().isBlank()) {
+
+            throw new RuntimeException(
+                    "Current password is required"
+            );
+        }
+
+        if (request.getNewPassword() == null ||
+                request.getNewPassword().isBlank()) {
+
+            throw new RuntimeException(
+                    "New password is required"
+            );
+        }
+
+        if (!passwordEncoder.matches(
+                request.getCurrentPassword(),
+                user.getPassword()
+        )) {
+
+            throw new RuntimeException(
+                    "Current password is incorrect"
+            );
+        }
+
+        if (request.getNewPassword().length() < 6) {
+
+            throw new RuntimeException(
+                    "New password must be at least 6 characters"
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getNewPassword()
+                )
+        );
+
+        userRepository.save(user);
+
+        return "Password changed successfully";
     }
 }

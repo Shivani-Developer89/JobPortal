@@ -1,7 +1,9 @@
 package com.JobPortal.JPP.service;
 
 
+import com.JobPortal.JPP.dto.request.ChangePasswordDTO;
 import com.JobPortal.JPP.dto.request.RegisterInputDTO;
+import com.JobPortal.JPP.dto.request.UpdateProfileDTO;
 import com.JobPortal.JPP.dto.response.RegisterOutputDTO;
 import com.JobPortal.JPP.entity.User;
 import org.springframework.core.io.Resource;
@@ -17,5 +19,18 @@ public interface UserService {
     String removeUser(Long id);
     String uploadResume(MultipartFile file);
     Resource downloadResume();
+    // =========================
+    // SETTINGS
+    // =========================
+
+    RegisterOutputDTO getMyProfile();
+
+    RegisterOutputDTO updateMyProfile(
+            UpdateProfileDTO request
+    );
+
+    String changeMyPassword(
+            ChangePasswordDTO request
+    );
 
 }

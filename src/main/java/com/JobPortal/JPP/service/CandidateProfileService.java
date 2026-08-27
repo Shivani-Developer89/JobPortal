@@ -17,4 +17,5 @@ public interface CandidateProfileService {
     CandidateProfileResponseDTO getCandidateProfile(Long candidateId);
     Resource getProfileImage(Long candidateId);
 
+
 }
