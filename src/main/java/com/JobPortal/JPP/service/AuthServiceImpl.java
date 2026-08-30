@@ -62,29 +62,34 @@ public class AuthServiceImpl implements  AuthService{
                 "Registration Successful"
         );
 
-    }
-
-    @Override
+    }@Override
     public AuthResponse login(LoginInputDTO dto) {
 
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
 
-            User user = userRepository.findByEmail(dto.getEmail())
-                    .orElseThrow(() ->
-                            new UserDoesNotExist("User not found"));
-
-            boolean isPasswordMatch =
-                    passwordEncoder.matches(
-                            dto.getPassword(),
-                            user.getPassword()
-                    );
-
-            if (!isPasswordMatch) {
-                throw new InvalidCredentialsException(
-                        "Invalid email or password"
+        boolean isPasswordMatch =
+                passwordEncoder.matches(
+                        dto.getPassword(),
+                        user.getPassword()
                 );
-            }
-           String token =
+
+        if (!isPasswordMatch) {
+            throw new InvalidCredentialsException(
+                    "Invalid email or password"
+            );
+        }
+
+        // Reactivate account when the user logs in again
+        if (!user.isActive()) {
+            user.setActive(true);
+            userRepository.save(user);
+        }
+
+        String token =
                 jwtService.generateToken(user.getEmail());
+
         System.out.println(
                 jwtService.extractEmail(token)
         );
@@ -95,7 +100,7 @@ public class AuthServiceImpl implements  AuthService{
                 user.getName(),
                 "Login Successful"
         );
-        }
+    }
 
     @Override
     public String forgetPassword(ForgetPasswordDTO request) {

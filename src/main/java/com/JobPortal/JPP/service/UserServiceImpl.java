@@ -313,4 +313,29 @@ public class UserServiceImpl implements UserService {
 
         return "Password changed successfully";
     }
+    @Override
+    public String deactivateMyAccount() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+
+        if (!user.isActive()) {
+            throw new RuntimeException(
+                    "Account is already deactivated"
+            );
+        }
+
+        user.setActive(false);
+
+        userRepository.save(user);
+
+        return "Account deactivated successfully";
+    }
 }

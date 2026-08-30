@@ -29,5 +29,27 @@ public class User {
     private LocalDateTime resumeUploadedAt;
     @Column(nullable = true)
     private String companyName;
+    @Column(nullable = false)
+    private boolean active = true;
+
+    private LocalDateTime deactivatedAt;
+
+    // existing getters/setters...
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(LocalDateTime deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
+    }
 
 }

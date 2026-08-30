@@ -89,4 +89,11 @@ public class UserController {
                 userService.changeMyPassword(request)
         );
     }
+    @PutMapping("/deactivate")
+    public ResponseEntity<String> deactivateMyAccount() {
+
+        return ResponseEntity.ok(
+                userService.deactivateMyAccount()
+        );
+    }
 }

@@ -32,5 +32,6 @@ public interface UserService {
     String changeMyPassword(
             ChangePasswordDTO request
     );
+    String deactivateMyAccount();
 
 }
