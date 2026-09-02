@@ -199,6 +199,19 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Resume not found");
         }
     }
+
+    private User getLoggedInUser() {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserDoesNotExist("User not found"));
+    }
     @Override
     public RegisterOutputDTO getMyProfile() {
 
@@ -316,26 +329,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public String deactivateMyAccount() {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new UserDoesNotExist("User not found"));
-
-        if (!user.isActive()) {
-            throw new RuntimeException(
-                    "Account is already deactivated"
-            );
-        }
+        User user = getLoggedInUser();
 
         user.setActive(false);
+        user.setDeactivatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 
         return "Account deactivated successfully";
+    }
+    @Override
+    public String requestAccountDeletion() {
+
+        User user = getLoggedInUser();
+
+        if (user.isDeletionRequested()) {
+            return "Account deletion is already requested";
+        }
+
+        user.setDeletionRequested(true);
+        user.setDeletionRequestedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        return "Account deletion requested. Your account will be permanently deleted after 30 days.";
     }
 }

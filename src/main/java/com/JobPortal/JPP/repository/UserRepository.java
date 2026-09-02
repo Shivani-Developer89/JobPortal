@@ -3,6 +3,7 @@ package com.JobPortal.JPP.repository;
 import com.JobPortal.JPP.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     List<User> id(Long id);
 
     String email(String email);
+    List<User> findByDeletionRequestedTrueAndDeletionRequestedAtBefore(
+            LocalDateTime dateTime
+    );
 }

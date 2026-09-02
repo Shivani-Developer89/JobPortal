@@ -96,4 +96,11 @@ public class UserController {
                 userService.deactivateMyAccount()
         );
     }
+    @DeleteMapping("/account")
+    public ResponseEntity<String> requestAccountDeletion() {
+
+        return ResponseEntity.ok(
+                userService.requestAccountDeletion()
+        );
+    }
 }

@@ -5,12 +5,15 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 @Data
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,23 +36,11 @@ public class User {
     private boolean active = true;
 
     private LocalDateTime deactivatedAt;
+    @Column(nullable = false)
+    private boolean deletionRequested = false;
 
-    // existing getters/setters...
+    private LocalDateTime deletionRequestedAt;
 
-    public boolean isActive() {
-        return active;
-    }
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public LocalDateTime getDeactivatedAt() {
-        return deactivatedAt;
-    }
-
-    public void setDeactivatedAt(LocalDateTime deactivatedAt) {
-        this.deactivatedAt = deactivatedAt;
-    }
 
 }

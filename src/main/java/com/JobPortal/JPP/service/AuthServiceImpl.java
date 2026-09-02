@@ -62,7 +62,9 @@ public class AuthServiceImpl implements  AuthService{
                 "Registration Successful"
         );
 
-    }@Override
+    }
+
+    @Override
     public AuthResponse login(LoginInputDTO dto) {
 
         User user = userRepository.findByEmail(dto.getEmail())
@@ -81,18 +83,27 @@ public class AuthServiceImpl implements  AuthService{
             );
         }
 
-        // Reactivate account when the user logs in again
+        // Reactivate account if it was deactivated
         if (!user.isActive()) {
             user.setActive(true);
-            userRepository.save(user);
+            user.setDeactivatedAt(null);
         }
 
-        String token =
-                jwtService.generateToken(user.getEmail());
+        // Cancel pending account deletion if within 30 days
+        if (user.isDeletionRequested()) {
 
-        System.out.println(
-                jwtService.extractEmail(token)
-        );
+            LocalDateTime deletionDeadline =
+                    user.getDeletionRequestedAt().plusDays(30);
+
+            if (!LocalDateTime.now().isAfter(deletionDeadline)) {
+                user.setDeletionRequested(false);
+                user.setDeletionRequestedAt(null);
+            }
+        }
+
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(user.getEmail());
 
         return new AuthResponse(
                 token,
