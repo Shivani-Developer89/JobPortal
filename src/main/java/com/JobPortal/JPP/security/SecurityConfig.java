@@ -143,6 +143,21 @@ public class SecurityConfig {
                                 "/job/*/unsave"
                         )
                         .hasRole("CANDIDATE")
+                                // =========================
+// CANDIDATE SETTINGS
+// =========================
+
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/candidate/settings"
+                                )
+                                .hasRole("CANDIDATE")
+
+                                .requestMatchers(
+                                        HttpMethod.PUT,
+                                        "/candidate/settings"
+                                )
+                                .hasRole("CANDIDATE")
 
 
                         // =========================
