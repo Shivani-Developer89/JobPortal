@@ -291,29 +291,30 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public List<JobResponseDTO> searchJobs(
-            String title
+            String keyword,
+            String location
     ) {
 
+        String cleanKeyword =
+                keyword == null
+                        ? ""
+                        : keyword.trim();
+
+        String cleanLocation =
+                location == null
+                        ? ""
+                        : location.trim();
+
         List<Job> jobs =
-                jobRepository
-                        .findByTitleContainingIgnoreCase(title);
+                jobRepository.searchJobs(
+                        cleanKeyword,
+                        cleanLocation,
+                        JobStatus.ACTIVE
+                );
 
-        List<JobResponseDTO> response =
-                new ArrayList<>();
-
-        for (Job job : jobs) {
-
-            // Don't show closed jobs in search
-            if (job.getStatus() != JobStatus.ACTIVE) {
-                continue;
-            }
-
-            response.add(
-                    convertToDTO(job)
-            );
-        }
-
-        return response;
+        return jobs.stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 
 

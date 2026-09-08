@@ -12,7 +12,12 @@ public interface JobService {
     Page<JobResponseDTO> getAllJobs(int page, int size,String sort);
     JobResponseDTO updateJob(Long id , JobRequestDTO jobRequestDTO);
     String removeJob(Long id);
-    List<JobResponseDTO> searchJobs(String title);
+
+    List<JobResponseDTO> searchJobs(
+            String keyword,
+            String location
+    );
+
 
     String saveJob(Long jobId);
     List<JobResponseDTO> getSavedJobs();
