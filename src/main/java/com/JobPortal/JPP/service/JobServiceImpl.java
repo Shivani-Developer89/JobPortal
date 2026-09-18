@@ -2,6 +2,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
+import com.JobPortal.JPP.dto.response.JobSearchSuggestionsDTO;
 import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
@@ -315,6 +316,49 @@ public class JobServiceImpl implements JobService {
         return jobs.stream()
                 .map(this::convertToDTO)
                 .toList();
+    }
+    @Override
+    public JobSearchSuggestionsDTO getSearchSuggestions(
+            String keyword,
+            String location
+    ) {
+
+        String cleanKeyword =
+                keyword == null ? "" : keyword.trim();
+
+        String cleanLocation =
+                location == null ? "" : location.trim();
+
+        JobSearchSuggestionsDTO dto =
+                new JobSearchSuggestionsDTO();
+
+        if (!cleanKeyword.isEmpty()) {
+
+            dto.setJobTitles(
+                    jobRepository.findSuggestedTitles(
+                            cleanKeyword,
+                            JobStatus.ACTIVE
+                    )
+            );
+
+        } else {
+            dto.setJobTitles(List.of());
+        }
+
+        if (!cleanLocation.isEmpty()) {
+
+            dto.setLocations(
+                    jobRepository.findSuggestedLocations(
+                            cleanLocation,
+                            JobStatus.ACTIVE
+                    )
+            );
+
+        } else {
+            dto.setLocations(List.of());
+        }
+
+        return dto;
     }
 
 

@@ -2,6 +2,7 @@ package com.JobPortal.JPP.controller;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
+import com.JobPortal.JPP.dto.response.JobSearchSuggestionsDTO;
 import com.JobPortal.JPP.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -68,6 +69,24 @@ public class JobController {
 
         return ResponseEntity.ok(
                 jobService.searchJobs(
+                        keyword,
+                        location
+                )
+        );
+    }
+    @GetMapping("/suggestions")
+    public ResponseEntity<JobSearchSuggestionsDTO> getSearchSuggestions(
+
+            @RequestParam(required = false)
+            String keyword,
+
+            @RequestParam(required = false)
+            String location
+
+    ) {
+
+        return ResponseEntity.ok(
+                jobService.getSearchSuggestions(
                         keyword,
                         location
                 )

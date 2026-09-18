@@ -39,6 +39,30 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             @Param("status") JobStatus status
     );
 
+    @Query("""
+    SELECT DISTINCT j.title
+    FROM Job j
+    WHERE j.status = :status
+    AND LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    ORDER BY j.title
+    """)
+    List<String> findSuggestedTitles(
+            @Param("keyword") String keyword,
+            @Param("status") JobStatus status
+    );
+
+    @Query("""
+    SELECT DISTINCT j.location
+    FROM Job j
+    WHERE j.status = :status
+    AND LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))
+    ORDER BY j.location
+    """)
+    List<String> findSuggestedLocations(
+            @Param("location") String location,
+            @Param("status") JobStatus status
+    );
+
     List<Job> findByTitleContainingIgnoreCase(String title);
 
     Page<Job> findByStatus(

@@ -2,6 +2,7 @@ package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
+import com.JobPortal.JPP.dto.response.JobSearchSuggestionsDTO;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -14,6 +15,10 @@ public interface JobService {
     String removeJob(Long id);
 
     List<JobResponseDTO> searchJobs(
+            String keyword,
+            String location
+    );
+    JobSearchSuggestionsDTO getSearchSuggestions(
             String keyword,
             String location
     );
