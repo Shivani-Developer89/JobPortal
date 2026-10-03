@@ -35,16 +35,5 @@ public class AuthController {
                 authService.login(dto)
         );
     }
-    @PostMapping("/forgot-password")
-    public String forgotPassword(
-            @RequestBody ForgetPasswordDTO request) {
 
-        return authService.forgetPassword(request);
-    }
-    @PostMapping("/reset-password")
-    public String resetPassword(
-            @RequestBody ResetPasswordDTO request) {
-
-        return authService.resetPassword(request);
-    }
 }

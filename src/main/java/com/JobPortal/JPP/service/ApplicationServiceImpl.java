@@ -1,6 +1,7 @@
 package com.JobPortal.JPP.service;
 
 import com.JobPortal.JPP.dto.common.ExperienceDTO;
+import com.JobPortal.JPP.dto.request.NotificationRequestDTO;
 import com.JobPortal.JPP.dto.response.*;
 import com.JobPortal.JPP.entity.Application;
 import com.JobPortal.JPP.entity.CandidateProfile;
@@ -9,6 +10,7 @@ import com.JobPortal.JPP.entity.Job;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ApplicationStatus;
 import com.JobPortal.JPP.entity.enums.JobStatus;
+import com.JobPortal.JPP.entity.enums.NotificationType;
 import com.JobPortal.JPP.entity.enums.Role;
 import com.JobPortal.JPP.exceptions.AccessDeniedException;
 import com.JobPortal.JPP.exceptions.AlreadyAppliedException;
@@ -41,6 +43,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final CandidateProfileRepository candidateProfileRepository;
+    private final NotificationService notificationService;
 
 
     // =========================================================
@@ -98,6 +101,32 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setStatus(ApplicationStatus.APPLIED);
 
         application = applicationRepository.save(application);
+
+
+        // =====================================================
+        // SEND NOTIFICATION TO RECRUITER
+        // =====================================================
+
+        NotificationRequestDTO notificationRequest =
+                new NotificationRequestDTO();
+
+        notificationRequest.setUserId(
+                job.getRecruiter().getId());
+
+        notificationRequest.setTitle(
+                "New Application Received");
+
+        notificationRequest.setMessage(
+                candidate.getName()
+                        + " applied for your job: "
+                        + job.getTitle()
+        );
+
+        notificationRequest.setType(
+                NotificationType.NEW_APPLICATION);
+
+        notificationService.createNotification(
+                notificationRequest);
 
 
         // =====================================================
@@ -411,10 +440,43 @@ public class ApplicationServiceImpl implements ApplicationService {
                                 "Regards,\nJob Portal Team";
         }
 
+
         emailService.sendEmail(
                 candidate.getEmail(),
                 subject,
                 emailBody
+        );
+
+
+        // =====================================================
+        // SEND IN-APP NOTIFICATION TO CANDIDATE
+        // =====================================================
+
+        NotificationRequestDTO notificationRequest =
+                new NotificationRequestDTO();
+
+        notificationRequest.setUserId(
+                candidate.getId()
+        );
+
+        notificationRequest.setTitle(
+                "Application Status Updated"
+        );
+
+        notificationRequest.setMessage(
+                "Your application for "
+                        + jobTitle
+                        + " has been updated to "
+                        + status.name()
+                        + "."
+        );
+
+        notificationRequest.setType(
+                NotificationType.APPLICATION_STATUS
+        );
+
+        notificationService.createNotification(
+                notificationRequest
         );
 
 
@@ -738,6 +800,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     // =========================================================
     // CONVERT APPLICATION -> RECRUITER DTO
     // =========================================================
+
     private RecruiterApplicationResponseDTO convertToRecruiterDTO(
             Application application) {
 
@@ -824,6 +887,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                         List.of()
                 );
             }
+
         } else {
 
             dto.setCandidateLocation(null);
@@ -837,6 +901,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         return dto;
     }
+
 
     // =========================================================
     // EXPERIENCE -> DTO
