@@ -1,6 +1,5 @@
 package com.JobPortal.JPP.dto.request;
 
-import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.ExperienceLevel;
 import com.JobPortal.JPP.entity.enums.JobType;
 import com.JobPortal.JPP.entity.enums.WorkMode;

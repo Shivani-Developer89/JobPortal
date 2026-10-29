@@ -10,6 +10,9 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import java.util.ArrayList;
 
 @Data
 @Entity
@@ -81,13 +84,15 @@ public class Job {
        Skills
        ========================== */
 
-    @ElementCollection
-    @CollectionTable(
-            name = "job_skills",
-            joinColumns = @JoinColumn(name = "job_id")
+
+    @OneToMany(
+            mappedBy = "job",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
-    @Column(name = "skill")
-    private List<String> skills;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<JobSkill> jobSkills = new ArrayList<>();
 
     /* ==========================
        Other Information

@@ -39,7 +39,10 @@ public class SecurityConfig {
                         // PUBLIC AUTH
                         // =========================
 
-                        .requestMatchers("/auth/**")
+                                // Public root and error routes
+                                .requestMatchers("/", "/error").permitAll()
+
+                                .requestMatchers("/auth/**")
                         .permitAll()
                     .requestMatchers("/notifications/**").authenticated()
 

@@ -4,6 +4,7 @@ import com.JobPortal.JPP.dto.request.JobRequestDTO;
 import com.JobPortal.JPP.dto.response.JobResponseDTO;
 import com.JobPortal.JPP.dto.response.JobSearchSuggestionsDTO;
 import com.JobPortal.JPP.entity.Job;
+import com.JobPortal.JPP.entity.JobSkill;
 import com.JobPortal.JPP.entity.SavedJob;
 import com.JobPortal.JPP.entity.User;
 import com.JobPortal.JPP.entity.enums.JobStatus;
@@ -23,10 +24,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class JobServiceImpl implements JobService {
@@ -41,6 +44,28 @@ public class JobServiceImpl implements JobService {
     // CREATE JOB
     // =========================================================
 
+    private void setJobSkills(Job job, List<String> skills) {
+
+        job.getJobSkills().clear();
+
+        if (skills == null) {
+            return;
+        }
+
+        for (String skill : skills) {
+
+            if (skill == null || skill.isBlank()) {
+                continue;
+            }
+
+            JobSkill jobSkill = new JobSkill();
+
+            jobSkill.setJob(job);
+            jobSkill.setSkill(skill.trim());
+
+            job.getJobSkills().add(jobSkill);
+        }
+    }
     @Override
     public JobResponseDTO createJob(JobRequestDTO jobRequestDTO) {
 
@@ -80,7 +105,8 @@ public class JobServiceImpl implements JobService {
                 jobRequestDTO.getMaxSalary()
         );
 
-        job.setSkills(
+        setJobSkills(
+                job,
                 jobRequestDTO.getSkills()
         );
 
@@ -227,7 +253,8 @@ public class JobServiceImpl implements JobService {
                 jobRequestDTO.getMaxSalary()
         );
 
-        job.setSkills(
+        setJobSkills(
+                job,
                 jobRequestDTO.getSkills()
         );
 
@@ -673,7 +700,10 @@ public class JobServiceImpl implements JobService {
         );
 
         dto.setSkills(
-                job.getSkills()
+                job.getJobSkills()
+                        .stream()
+                        .map(JobSkill::getSkill)
+                        .toList()
         );
 
         dto.setVacancies(

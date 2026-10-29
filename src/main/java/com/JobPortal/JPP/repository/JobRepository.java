@@ -17,7 +17,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @Query("""
     SELECT DISTINCT j
     FROM Job j
-    LEFT JOIN j.skills s
+   LEFT JOIN j.jobSkills js
     WHERE j.status = :status
     AND (
         :keyword IS NULL
@@ -25,7 +25,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
         OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
         OR LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
         OR LOWER(j.companyName) LIKE LOWER(CONCAT('%', :keyword, '%'))
-        OR LOWER(s) LIKE LOWER(CONCAT('%', :keyword, '%'))
+         OR LOWER(js.skill) LIKE LOWER(CONCAT('%', :keyword, '%'))
     )
     AND (
         :location IS NULL
